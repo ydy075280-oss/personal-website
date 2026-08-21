@@ -1,0 +1,416 @@
+import { useState, useEffect } from 'react'
+import { renderMarkdown, getAllPosts } from '../lib/posts'
+
+function isNotionUrl(url) {
+  try {
+    const u = new URL(url)
+    return /(^|\.)notion\.so$|(^|\.)notion\.site$|(^|\.)notion\.new$|(^|\.)notion\.com$/.test(u.hostname)
+  } catch {
+    return false
+  }
+}
+
+function extractNotionPageId(url) {
+  // 支持：
+  // - https://xxx.notion.site/Title-abc123def456
+  // - https://www.notion.so/Title-abc123def456?pvs=4
+  // - https://app.notion.com/p/abc123def456?v=...
+  const m = url.match(/[0-9a-f]{32}/i)
+  return m ? m[0] : null
+}
+
+export default function Studio({ onOpenPost }) {
+  const [url, setUrl] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [mode, setMode] = useState(null) // 'notion' | 'url'
+  const [draft, setDraft] = useState(null) // { title, tag, date, content, slug? }
+  const [saving, setSaving] = useState(false)
+  const [savedSlug, setSavedSlug] = useState(null)
+  const [posts, setPosts] = useState(getAllPosts())
+  const [editingSlug, setEditingSlug] = useState(null)
+
+  // 作品集导入
+  const [worksUrl, setWorksUrl] = useState('')
+  const [worksBusy, setWorksBusy] = useState(false)
+  const [worksError, setWorksError] = useState('')
+  const [worksMsg, setWorksMsg] = useState('')
+
+  // 作品集管理
+  const [works, setWorks] = useState([])
+  const [worksLoading, setWorksLoading] = useState(false)
+
+  const refreshPosts = () => setPosts(getAllPosts())
+
+  const refreshWorks = async () => {
+    try {
+      const res = await fetch('/works/works.json')
+      const data = await res.json()
+      setWorks(Array.isArray(data) ? data : [])
+    } catch {
+      setWorks([])
+    }
+  }
+
+  const handleDeleteWork = async (w) => {
+    if (!window.confirm(`确定删除作品「${w.title}」吗？`)) return
+    try {
+      const res = await fetch('/api/works/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: w.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '删除失败')
+      setWorks((prev) => prev.filter((x) => x.id !== w.id))
+    } catch (err) {
+      setWorksError(err.message || String(err))
+    }
+  }
+
+  const handleImport = async () => {
+    const target = url.trim()
+    if (!target) return
+    setError('')
+    setBusy(true)
+    setSavedSlug(null)
+    setDraft(null)
+    setEditingSlug(null)
+
+    try {
+      if (isNotionUrl(target)) {
+        const pageId = extractNotionPageId(target)
+        if (!pageId) throw new Error('无法从链接中识别 Notion 页面 ID，请复制完整的页面链接')
+        const res = await fetch('/api/import/notion', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: target, pageId }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Notion 导入失败')
+        setMode('notion')
+        setDraft({
+          title: data.title || '未命名文章',
+          tag: '',
+          date: new Date().toISOString().slice(0, 7),
+          content: data.content || '',
+        })
+      } else {
+        const res = await fetch('/api/import/url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: target }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || '链接导入失败')
+        setMode('url')
+        setDraft({
+          title: data.title || new URL(target).hostname,
+          tag: '',
+          date: new Date().toISOString().slice(0, 7),
+          content: data.content || '',
+        })
+      }
+    } catch (err) {
+      setError(err.message || String(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!draft || !draft.title.trim()) return
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch('/api/import/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: draft.title.trim(),
+          tag: draft.tag.trim(),
+          date: draft.date.trim(),
+          content: draft.content,
+          slug: editingSlug || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '保存失败')
+      setSavedSlug(data.slug)
+      // 刷新页面，让构建期的 import.meta.glob 重新扫描到新文件，并直接进入文章阅读页
+      window.location.hash = `#/post/${encodeURIComponent(data.slug)}`
+      window.location.reload()
+    } catch (err) {
+      setError(err.message || String(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEdit = (p) => {
+    setUrl('')
+    setError('')
+    setSavedSlug(null)
+    setDraft({
+      title: p.title,
+      tag: p.tag,
+      date: p.date,
+      content: p.content,
+    })
+    setEditingSlug(p.slug)
+  }
+
+  const handleDelete = async (p) => {
+    if (!window.confirm(`确定删除「${p.title}」吗？此操作不可恢复。`)) return
+    setError('')
+    try {
+      const res = await fetch('/api/import/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: p.slug }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '删除失败')
+      // 刷新页面让 import.meta.glob 重新扫描
+      window.location.reload()
+    } catch (err) {
+      setError(err.message || String(err))
+    }
+  }
+
+  const handleImportWorks = async () => {
+    const target = worksUrl.trim()
+    if (!target) return
+    setWorksError('')
+    setWorksMsg('')
+    setWorksBusy(true)
+    try {
+      const m = target.match(/[0-9a-f]{32}/i)
+      const databaseId = m ? m[0] : ''
+      if (!databaseId) throw new Error('无法从链接中识别 Notion Database ID')
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30秒超时
+
+      const res = await fetch('/api/import/works', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ databaseId }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '导入失败')
+      setWorksMsg(`已导入 ${data.count} 个作品，刷新首页查看`)
+      setWorksUrl('')
+      await refreshWorks()
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        setWorksError('请求超时，请检查网络或稍后重试')
+      } else {
+        setWorksError(err.message || String(err))
+      }
+    } finally {
+      setWorksBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshPosts()
+    refreshWorks()
+  }, [])
+
+  return (
+    <div className="studio-page">
+      <div className="section-header">
+        <h2>写作台</h2>
+        <p>粘贴 Notion / 任意网页链接，自动导入并转为 Markdown，预览确认后发布到本站。Obsidian 里写的文章放到 src/content/ 目录即可直接出现。</p>
+      </div>
+
+      {/* 导入区 */}
+      <div className="studio-import">
+        <div className="studio-input-row">
+          <input
+            className="studio-input"
+            type="text"
+            placeholder="粘贴链接：Notion 页面链接，或任意网页地址（https://…）"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleImport()}
+            disabled={busy}
+          />
+          <button className="studio-btn primary" onClick={handleImport} disabled={busy}>
+            {busy ? '导入中…' : '导入并预览'}
+          </button>
+        </div>
+        <p className="studio-tip">
+          提示：Notion 链接需在页面右上角 ··· → Connections 中添加你的 Integration 授权，并配置
+          NOTION_TOKEN（见 README）。
+        </p>
+        {error && <p className="studio-error">{error}</p>}
+      </div>
+
+      {/* 编辑区 */}
+      {draft && (
+        <div className="studio-editor">
+          <div className="studio-fields">
+            <label>
+              标题
+              <input
+                className="studio-input"
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              />
+            </label>
+            <label>
+              标签
+              <input
+                className="studio-input"
+                value={draft.tag}
+                placeholder="如：技术 / 文化 / 生活方式"
+                onChange={(e) => setDraft({ ...draft, tag: e.target.value })}
+              />
+            </label>
+            <label>
+              日期
+              <input
+                className="studio-input"
+                value={draft.date}
+                placeholder="YYYY.MM"
+                onChange={(e) => setDraft({ ...draft, date: e.target.value })}
+              />
+            </label>
+          </div>
+          <label>
+            Markdown 正文（可直接编辑）
+            <textarea
+              className="studio-textarea"
+              rows={14}
+              value={draft.content}
+              onChange={(e) => setDraft({ ...draft, content: e.target.value })}
+            />
+          </label>
+
+          <div className="studio-actions">
+            <button
+              className="studio-btn primary"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? '保存中…' : editingSlug ? '更新文章' : '发布到网站'}
+            </button>
+            <button className="studio-btn" onClick={() => { setDraft(null); setEditingSlug(null); setSavedSlug(null) }}>
+              取消
+            </button>
+          </div>
+
+          <div className="studio-preview">
+            <h3>预览</h3>
+            <div
+              className="article-content preview"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(draft.content) }}
+            />
+          </div>
+        </div>
+      )}
+
+      {savedSlug && (
+        <div className="studio-success">
+          <p>已发布 ✦</p>
+          <a href={`#/post/${encodeURIComponent(savedSlug)}`}>查看新文章 →</a>
+        </div>
+      )}
+
+      {/* 作品集导入 */}
+      <div className="studio-import" style={{ borderTop: '1px solid var(--dirt-line)', paddingTop: 40 }}>
+        <h3 style={{ fontSize: '0.8rem', fontWeight: 800, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--dirt-muted)', marginBottom: 20 }}>
+          从 Notion 导入作品集
+        </h3>
+        <div className="studio-input-row">
+          <input
+            className="studio-input"
+            type="text"
+            placeholder="粘贴 Notion Database 链接（数据库视图链接）"
+            value={worksUrl}
+            onChange={(e) => setWorksUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleImportWorks()}
+            disabled={worksBusy}
+          />
+          <button className="studio-btn primary" onClick={handleImportWorks} disabled={worksBusy}>
+            {worksBusy ? '导入中…' : '导入作品集'}
+          </button>
+        </div>
+        <p className="studio-tip">
+          提示：在 Notion 里建一个数据库，列名为「标题、类型、年份、状态、封面」。复制数据库链接粘贴上方即可导入。
+        </p>
+        {worksError && <p className="studio-error">{worksError}</p>}
+        {worksMsg && <p className="studio-success" style={{ display: 'block', marginTop: 12 }}>{worksMsg}</p>}
+      </div>
+
+      {/* 文章管理 */}
+      <div className="studio-list">
+        <h3>已发布文章（{posts.length}）</h3>
+        {posts.length === 0 && <p className="studio-tip">还没有文章。把 Markdown 文件放进 src/content/，或使用上方导入。</p>}
+        <ul>
+          {posts.map((p) => (
+            <li key={p.slug}>
+              <div className="studio-list-meta">
+                <span className="studio-list-tag">{p.tag}</span>
+                <span>{p.date}</span>
+              </div>
+              <a className="studio-list-title" href={`#/post/${encodeURIComponent(p.slug)}`}>
+                {p.title}
+              </a>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="studio-btn small" onClick={() => handleEdit(p)}>
+                  编辑
+                </button>
+                <button
+                  className="studio-btn small danger"
+                  onClick={() => handleDelete(p)}
+                >
+                  删除
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* 作品集管理 */}
+      <div className="studio-list" style={{ borderTop: '1px solid var(--dirt-line)', marginTop: 48, paddingTop: 32 }}>
+        <h3>作品集管理（{works.length}）</h3>
+        {works.length === 0 && <p className="studio-tip">还没有作品。使用上方「从 Notion 导入作品集」功能添加。</p>}
+        <ul>
+          {works.map((w) => (
+            <li key={w.id}>
+              <div className="studio-list-meta">
+                <span className="studio-list-tag">{w.meta?.[0] || '作品'}</span>
+                <span>{w.meta?.[1] || ''}</span>
+              </div>
+              <a className="studio-list-title" href={w.url || '#'} target={w.url ? '_blank' : undefined} rel={w.url ? 'noreferrer' : undefined}>
+                {w.title}
+              </a>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {w.image && (
+                  <img
+                    src={w.image}
+                    alt=""
+                    style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--dirt-line)' }}
+                  />
+                )}
+                <button
+                  className="studio-btn small danger"
+                  onClick={() => handleDeleteWork(w)}
+                >
+                  删除
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}

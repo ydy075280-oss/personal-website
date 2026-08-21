@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #e8e2d5;
+    color: #241f19;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.5;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: rgba(180, 83, 9, 0.25);
+  }
+}
+
+@layer components {
+  /* 版心容器 */
+  .container-wide {
+    @apply mx-auto w-full max-w-[1400px] px-5 sm:px-10;
+  }
+
+  /* 区块标题 */
+  .section-header {
+    @apply mb-16;
+  }
+
+  .section-header h2 {
+    @apply text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4;
+  }
+
+  .section-header p {
+    @apply text-base sm:text-lg text-[#666666] max-w-[500px];
+  }
+
+  /* 导航项 */
+  .nav-item {
+    @apply cursor-pointer text-[0.85rem] font-bold tracking-wider uppercase text-[#6b5f4d] transition-colors duration-300;
+  }
+
+  .nav-item:hover,
+  .nav-item.active {
+    color: #241f19;
+  }
+}
+
+/* 区块切换动画 */
+@layer components {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .page-section {
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* 极简水平滚动条 */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c9bfa8;
+  border-radius: 2px;
+}

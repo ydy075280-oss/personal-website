@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="#e8e2d5"/>
+  <rect x="0" y="0" width="1200" height="675" fill="none" stroke="#c9bfa8" stroke-width="2"/>
+  <rect x="120" y="180" width="400" height="250" fill="#f5f0e4" stroke="#c9bfa8" stroke-width="3"/>
+  <rect x="160" y="220" width="260" height="6" fill="#c9bfa8"/>
+  <rect x="160" y="250" width="220" height="6" fill="#c9bfa8"/>
+  <rect x="160" y="280" width="240" height="6" fill="#c9bfa8"/>
+  <rect x="160" y="310" width="180" height="6" fill="#c9bfa8"/>
+  <rect x="160" y="370" width="320" height="34" fill="#b45309" rx="4"/>
+  <rect x="620" y="200" width="360" height="240" fill="#241f19"/>
+  <rect x="660" y="240" width="280" height="160" fill="#6b5f4d"/>
+  <circle cx="800" cy="320" r="60" fill="#b45309"/>
+  <circle cx="800" cy="320" r="34" fill="#f5f0e4"/>
+  <rect x="150" y="520" width="120" height="10" fill="#9c8f77"/>
+  <rect x="300" y="520" width="200" height="10" fill="#9c8f77"/>
+  <rect x="540" y="520" width="160" height="10" fill="#9c8f77"/>
+  <rect x="740" y="520" width="260" height="10" fill="#9c8f77"/>
+  <text x="600" y="640" text-anchor="middle" font-family="Inter, sans-serif" font-size="26" font-weight="700" letter-spacing="4" fill="#6b5f4d">MOBILE WORK DESK</text>
+</svg>
