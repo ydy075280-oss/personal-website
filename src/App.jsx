@@ -84,7 +84,7 @@ export default function App() {
     } else if (scrollY < worksEl.offsetTop - 100) {
       setActiveId('home-insights')
     } else if (scrollY < aboutEl.offsetTop - 100) {
-      setActiveId('home-works')
+      setActiveId('works')
     } else {
       setActiveId('about')
     }

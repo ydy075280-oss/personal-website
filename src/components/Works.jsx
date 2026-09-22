@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { fetchWorks, subscribeWorksUpdate, getWorkCover } from '../lib/works'
+import WorkModal from './WorkModal'
 
 export default function Works() {
   const [works, setWorks] = useState([])
@@ -13,26 +15,28 @@ export default function Works() {
     target: 0,       // 目标索引
     isDragging: false,
     startX: 0,
+    startY: 0,
     lastX: 0,
     velocity: 0,
     lastTime: 0,
+    moved: false,    // 是否为「拖动」（区分点击与拖拽）
+    downTarget: null,
     rafId: null,
   })
 
-  // 读取作品配置
+  // 读取作品配置；后台改动后会自动重新拉取（不重置轮播位置）
   useEffect(() => {
-    fetch('/works/works.json')
-      .then((r) => r.json())
-      .then((data) => {
-        const list = Array.isArray(data) ? data : []
-        setWorks(list)
-        // 初始居中
-        if (list.length > 0) {
-          stateRef.current.target = 0
-          stateRef.current.current = 0
-        }
-      })
-      .catch(() => setWorks([]))
+    let alive = true
+    const load = async () => {
+      try {
+        const list = await fetchWorks()
+        if (alive) setWorks(list)
+      } catch {
+        if (alive) setWorks([])
+      }
+    }
+    load()
+    return subscribeWorksUpdate(load)
   }, [])
 
   // 动画循环
@@ -72,21 +76,23 @@ export default function Works() {
       const absDist = Math.abs(dist)
 
       // 位置：中心放大，两侧按曲线排列
-      const spacing = 420
+      // 间距按「中心卡视觉半宽 + 相邻卡半宽 + 固定间隙」计算，保证卡片之间始终留有空隙
+      const cardHalf = (items[0]?.offsetWidth || 440) / 2
+      const spacing = cardHalf * 2.6
       const x = dist * spacing
 
-      // 缩放：中心 1，两侧递减
-      let scale = 1 - absDist * 0.12
-      scale = Math.max(0.7, scale)
+      // 缩放：中心 1.3，相邻为 1，向外继续递减
+      let scale = 1.3 - absDist * 0.3
+      scale = Math.max(0.5, scale)
 
       // 透明度
-      let opacity = 1 - absDist * 0.18
-      opacity = Math.max(0.4, opacity)
+      let opacity = 1 - absDist * 0.16
+      opacity = Math.max(0.35, opacity)
 
       // Z轴层级
       const zIndex = 100 - Math.round(absDist * 10)
 
-      item.style.transform = `translateX(${centerX + x - 220}px) translateY(-50%) scale(${scale})`
+      item.style.transform = `translateX(${centerX + x - cardHalf}px) translateY(-50%) scale(${scale})`
       item.style.opacity = opacity
       item.style.zIndex = zIndex
     }
@@ -129,9 +135,13 @@ export default function Works() {
     const onPointerDown = (e) => {
       state.isDragging = true
       state.startX = e.clientX
+      state.startY = e.clientY
       state.lastX = e.clientX
       state.lastTime = Date.now()
       state.velocity = 0
+      state.moved = false
+      // pointer capture 之后 event.target 会变成容器，先记下真正点到的元素
+      state.downTarget = e.target
       container.setPointerCapture(e.pointerId)
       container.style.cursor = 'grabbing'
     }
@@ -142,6 +152,11 @@ export default function Works() {
       const dt = Date.now() - state.lastTime
       state.lastX = e.clientX
       state.lastTime = Date.now()
+
+      // 位移超过阈值就标记为「拖动」，避免松手时误触发点击
+      if (Math.abs(e.clientX - state.startX) > 6 || Math.abs(e.clientY - state.startY) > 6) {
+        state.moved = true
+      }
 
       // 直接移动目标
       state.target -= dx * 0.006
@@ -156,6 +171,13 @@ export default function Works() {
       if (!state.isDragging) return
       state.isDragging = false
       container.style.cursor = 'grab'
+
+      // 没有拖动 → 视为点击，打开对应作品的详情
+      if (!state.moved) {
+        const card = state.downTarget?.closest?.('.work-carousel-card')
+        const idx = card ? Number(card.dataset.index) : NaN
+        if (!Number.isNaN(idx) && works[idx]) setSelected(works[idx])
+      }
 
       // 惯性滑动
       const inertia = () => {
@@ -179,15 +201,7 @@ export default function Works() {
       container.removeEventListener('pointerup', onPointerUp)
       container.removeEventListener('pointerleave', onPointerUp)
     }
-  }, [works.length])
-
-  // ESC 关闭弹窗
-  useEffect(() => {
-    if (!selected) return
-    const onKey = (e) => { if (e.key === 'Escape') setSelected(null) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selected])
+  }, [works])
 
   return (
     <div className="home-works" id="home-works">
@@ -207,18 +221,18 @@ export default function Works() {
 
       <div className="works-carousel" ref={containerRef}>
         <div className="works-carousel-track" ref={trackRef}>
-          {works.map((work) => (
+          {works.map((work, i) => (
             <div
               className="work-carousel-card"
               key={work.id}
-              onClick={() => setSelected(work)}
+              data-index={i}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter') setSelected(work) }}
             >
               <div className="work-carousel-img-wrap">
-                {work.image ? (
-                  <img src={work.image} alt={work.title} />
+                {getWorkCover(work) ? (
+                  <img src={getWorkCover(work)} alt={work.title} />
                 ) : (
                   <div className="work-carousel-placeholder">{work.title[0]}</div>
                 )}
@@ -235,49 +249,8 @@ export default function Works() {
         </div>
       </div>
 
-      {/* 作品详情弹窗 */}
-      {selected && (
-        <div
-          className="work-modal"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelected(null) }}
-        >
-          <div className="work-modal-content">
-            <button className="work-modal-close" onClick={() => setSelected(null)} aria-label="关闭">
-              ×
-            </button>
-            {selected.image && (
-              <img src={selected.image} alt={selected.title} className="work-modal-img" />
-            )}
-            <div className="work-modal-body">
-              <h3>{selected.title}</h3>
-              <div className="work-modal-meta">
-                {selected.meta?.map((m, i) => (
-                  <span key={i}>{m}</span>
-                ))}
-                {selected.status && <span className="work-modal-status">{selected.status}</span>}
-              </div>
-              {selected.url && (
-                <a
-                  className="work-modal-link"
-                  href={selected.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  访问项目 →
-                </a>
-              )}
-              {selected.images && selected.images.length > 0 && (
-                <div className="work-modal-gallery">
-                  {selected.images.map((src, idx) => (
-                    <img key={idx} src={src} alt={`${selected.title} ${idx + 1}`} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 作品完整详情：封面大图 + 全部图片长栏 */}
+      {selected && <WorkModal work={selected} onClose={() => setSelected(null)} />}
     </div>
   )
 }

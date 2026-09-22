@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,9 +16,9 @@
   }
 
   body {
-    background-color: #e8e2d5;
-    color: #241f19;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #0b0a09;
+    color: #ece8e2;
+    font-family: 'Outfit', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.5;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -26,7 +26,7 @@
   }
 
   ::selection {
-    background-color: rgba(180, 83, 9, 0.25);
+    background-color: rgba(201, 160, 99, 0.3);
   }
 }
 
@@ -46,17 +46,17 @@
   }
 
   .section-header p {
-    @apply text-base sm:text-lg text-[#666666] max-w-[500px];
+    @apply text-base text-[#9c9890] max-w-[500px];
   }
 
   /* 导航项 */
   .nav-item {
-    @apply cursor-pointer text-[0.85rem] font-bold tracking-wider uppercase text-[#6b5f4d] transition-colors duration-300;
+    @apply cursor-pointer text-[0.82rem] font-medium tracking-[0.14em] text-[#9c9890] transition-colors duration-300;
   }
 
   .nav-item:hover,
   .nav-item.active {
-    color: #241f19;
+    color: #ece8e2;
   }
 }
 
@@ -87,6 +87,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c9bfa8;
+  background: #2c2926;
   border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c9a063;
 }

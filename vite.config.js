@@ -310,6 +310,51 @@ function devApiPlugin(env) {
           }
         }
 
+        if (urlPath === '/api/works/update' && req.method === 'POST') {
+          let body
+          try { body = await readJsonBody(req) } catch (e) { return sendJson(res, 400, { error: e.message }) }
+          const id = String(body.id || '').trim()
+          if (!id) return sendJson(res, 400, { error: '缺少作品 ID' })
+          const worksDir = join(__dirname, 'public', 'works')
+          const worksJson = join(worksDir, 'works.json')
+          if (!existsSync(worksJson)) return sendJson(res, 404, { error: '作品集尚未导入' })
+          try {
+            const works = JSON.parse(readFileSync(worksJson, 'utf8'))
+            const idx = works.findIndex((w) => w.id === id)
+            if (idx < 0) return sendJson(res, 404, { error: '作品不存在' })
+
+            const before = works[idx]
+            const updated = { ...before }
+            if (Array.isArray(body.images)) updated.images = body.images
+            if (body.image !== undefined) updated.image = body.image
+            works[idx] = updated
+            writeFileSync(worksJson, JSON.stringify(works, null, 2) + '\n', 'utf8')
+
+            // 清理不再被任何作品引用的本地图片文件
+            const stillUsed = new Set()
+            for (const w of works) {
+              if (w.image && w.image.startsWith('/works/')) stillUsed.add(w.image.replace('/works/', ''))
+              for (const src of w.images || []) {
+                if (src && src.startsWith('/works/')) stillUsed.add(src.replace('/works/', ''))
+              }
+            }
+            const candidates = [...(before.images || []), before.image].filter(Boolean)
+            for (const src of candidates) {
+              if (!src.startsWith('/works/')) continue
+              const rel = src.replace('/works/', '')
+              if (stillUsed.has(rel)) continue
+              const file = join(worksDir, rel)
+              if (existsSync(file) && statSync(file).isFile()) {
+                try { unlinkSync(file) } catch { /* 文件被占用时忽略 */ }
+              }
+            }
+
+            return sendJson(res, 200, { ok: true, work: updated })
+          } catch (e) {
+            return sendJson(res, 500, { error: `保存失败：${e.message}` })
+          }
+        }
+
         if (urlPath === '/api/import/works' && req.method === 'POST') {
           if (!notionToken) return sendJson(res, 400, { error: '未配置 NOTION_TOKEN' })
           let body

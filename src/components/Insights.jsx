@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { getAllPosts } from '../lib/posts'
 
 // 数据来自 src/content/*.md（import.meta.glob 扫描），保存即发布
-const insights = getAllPosts()
+// 首页只展示最新的 6 篇，其余通过「更多」进入洞察列表页查看
+const HOME_POST_LIMIT = 6
+const insights = getAllPosts().slice(0, HOME_POST_LIMIT)
 
 export default function Insights() {
   const [activeIndex, setActiveIndex] = useState(0)

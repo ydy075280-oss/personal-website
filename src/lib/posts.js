@@ -22,10 +22,14 @@ export function getAllPosts() {
       const { meta, content } = parseFrontmatter(raw)
       const slug = path.split('/').pop().replace(/\.md$/, '')
       // frontmatter 没有 excerpt 时，从正文提取前 200 字作为摘要
+      // 保留段落结构：空行视为分段（保留换行），段内换行合并为空格
       const plain = content
         .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
         .replace(/[#>*`~\-|]/g, '')
-        .replace(/\s+/g, ' ')
+        .split(/\n{2,}/)
+        .map((para) => para.replace(/\s+/g, ' ').trim())
+        .filter(Boolean)
+        .join('\n')
         .trim()
       return {
         slug,

@@ -38,7 +38,6 @@ export default function Post({ slug, onBack }) {
             <span>{post.date}</span>
           </div>
           <h1 className="post-title">{post.title}</h1>
-          {post.excerpt && <p className="post-excerpt">{post.excerpt}</p>}
         </header>
 
         <div

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { renderMarkdown, getAllPosts } from '../lib/posts'
+import { fetchWorks, markWorksUpdated, getWorkCover } from '../lib/works'
 
 function isNotionUrl(url) {
   try {
@@ -40,13 +41,43 @@ export default function Studio({ onOpenPost }) {
   const [works, setWorks] = useState([])
   const [worksLoading, setWorksLoading] = useState(false)
 
+  // 作品图片管理（拖拽排序 / 删除 / 设封面）
+  const [activeWorkId, setActiveWorkId] = useState(null)
+  const [savingWork, setSavingWork] = useState(false)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+  const dragIndexRef = useRef(null)
+
+  const activeWork = works.find((w) => w.id === activeWorkId) || null
+
   const refreshPosts = () => setPosts(getAllPosts())
 
+  // 读取作品列表；没有封面的作品，自动把图库第一张设为首页图（一次性补齐）
   const refreshWorks = async () => {
     try {
-      const res = await fetch('/works/works.json')
-      const data = await res.json()
-      setWorks(Array.isArray(data) ? data : [])
+      let list = await fetchWorks()
+      const missing = list.filter((w) => !w.image && w.images?.length)
+
+      for (const w of missing) {
+        try {
+          const res = await fetch('/api/works/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: w.id, image: w.images[0], images: w.images.slice(1) }),
+          })
+          const data = await res.json()
+          if (res.ok && data.work) {
+            list = list.map((x) => (x.id === data.work.id ? data.work : x))
+          }
+        } catch {
+          // 单个作品失败不影响其他
+        }
+      }
+
+      if (missing.length > 0) {
+        setWorksMsg(`已自动把 ${missing.length} 个作品的图库第一张设为首页图`)
+        markWorksUpdated()
+      }
+      setWorks(list)
     } catch {
       setWorks([])
     }
@@ -63,9 +94,75 @@ export default function Studio({ onOpenPost }) {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '删除失败')
       setWorks((prev) => prev.filter((x) => x.id !== w.id))
+      markWorksUpdated()
     } catch (err) {
       setWorksError(err.message || String(err))
     }
+  }
+
+  /* ---------- 作品图片管理：拖拽排序 / 删除 / 设封面 ---------- */
+
+  const saveWork = async (patch) => {
+    setSavingWork(true)
+    setWorksError('')
+    try {
+      const res = await fetch('/api/works/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '保存失败')
+      setWorks((prev) => prev.map((w) => (w.id === data.work.id ? data.work : w)))
+      markWorksUpdated()
+    } catch (err) {
+      setWorksError(err.message || String(err))
+    } finally {
+      setSavingWork(false)
+    }
+  }
+
+  const handleRemoveImage = (idx) => {
+    const w = activeWork
+    if (!w) return
+    const removed = w.images?.[idx]
+    if (!removed) return
+    if (!window.confirm('确定删除这张图片？图片文件会一并删除，不可恢复。')) return
+    const images = (w.images || []).filter((_, i) => i !== idx)
+    // 删掉的正好是封面时，顺位用剩下第一张补上
+    const image = w.image === removed ? images[0] || '' : w.image
+    saveWork({ id: w.id, image, images })
+  }
+
+  const handleRemoveCover = () => {
+    const w = activeWork
+    if (!w || !w.image) return
+    // 封面被删后，由紧接着的下一张图顶上来接替，其余依次前移
+    const rest = [...(w.images || [])]
+    const nextCover = rest.shift() || ''
+    const tip = nextCover
+      ? '确定删除封面图？删除后，后面的第一张会自动顶上来成为新封面。'
+      : '确定删除封面图？图片文件会一并删除，不可恢复。'
+    if (!window.confirm(tip)) return
+    saveWork({ id: w.id, image: nextCover, images: rest })
+  }
+
+  const handleSetCover = (src) => {
+    const w = activeWork
+    if (!w) return
+    saveWork({ id: w.id, image: src })
+  }
+
+  const handleDropImage = (toIdx) => {
+    const fromIdx = dragIndexRef.current
+    dragIndexRef.current = null
+    setDragOverIndex(null)
+    const w = activeWork
+    if (!w || fromIdx == null || fromIdx === toIdx) return
+    const images = [...(w.images || [])]
+    const [moved] = images.splice(fromIdx, 1)
+    images.splice(toIdx, 0, moved)
+    saveWork({ id: w.id, images })
   }
 
   const handleImport = async () => {
@@ -202,9 +299,10 @@ export default function Studio({ onOpenPost }) {
 
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '导入失败')
-      setWorksMsg(`已导入 ${data.count} 个作品，刷新首页查看`)
+      setWorksMsg(`已导入 ${data.count} 个作品，首页会同步更新`)
       setWorksUrl('')
       await refreshWorks()
+      markWorksUpdated()
     } catch (err) {
       if (err.name === 'AbortError') {
         setWorksError('请求超时，请检查网络或稍后重试')
@@ -393,13 +491,21 @@ export default function Studio({ onOpenPost }) {
                 {w.title}
               </a>
               <div style={{ display: 'flex', gap: 8 }}>
-                {w.image && (
+                {getWorkCover(w) && (
                   <img
-                    src={w.image}
+                    src={getWorkCover(w)}
                     alt=""
                     style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 4, border: '1px solid var(--dirt-line)' }}
                   />
                 )}
+                <button
+                  className="studio-btn small"
+                  onClick={() => setActiveWorkId(activeWorkId === w.id ? null : w.id)}
+                >
+                  {activeWorkId === w.id
+                    ? '收起'
+                    : `管理图片${w.images?.length ? `（${w.images.length}）` : ''}`}
+                </button>
                 <button
                   className="studio-btn small danger"
                   onClick={() => handleDeleteWork(w)}
@@ -410,6 +516,88 @@ export default function Studio({ onOpenPost }) {
             </li>
           ))}
         </ul>
+
+        {/* 图片管理：拖拽排序 / 删除 / 设封面 */}
+        {activeWork && (
+          <div className="studio-work-editor">
+            <div className="studio-work-editor-head">
+              <h4>{activeWork.title} · 图片管理</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {savingWork && <span className="studio-tip" style={{ margin: 0 }}>保存中…</span>}
+                <button className="studio-btn small" onClick={() => setActiveWorkId(null)}>
+                  收起
+                </button>
+              </div>
+            </div>
+            <p className="studio-tip">
+              按住图片拖拽即可调整顺序，右上角 × 删除图片，左下角可将该图设为封面。所有改动自动保存到 works.json。
+            </p>
+
+            <div className="studio-img-grid">
+              {activeWork.image && (
+                <div className="studio-img-item cover">
+                  <img src={activeWork.image} alt="封面" />
+                  <span className="studio-img-badge">封面</span>
+                  <button
+                    className="studio-img-remove"
+                    onClick={handleRemoveCover}
+                    aria-label="删除封面"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              {(activeWork.images || []).map((src, idx) => (
+                <div
+                  key={`${src}-${idx}`}
+                  className={`studio-img-item ${dragOverIndex === idx ? 'drag-over' : ''}`}
+                  draggable
+                  onDragStart={(e) => {
+                    dragIndexRef.current = idx
+                    e.dataTransfer.effectAllowed = 'move'
+                  }}
+                  onDragEnd={() => {
+                    dragIndexRef.current = null
+                    setDragOverIndex(null)
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    setDragOverIndex(idx)
+                  }}
+                  onDragLeave={() => setDragOverIndex(null)}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    handleDropImage(idx)
+                  }}
+                >
+                  <img src={src} alt="" />
+                  <span className="studio-img-order">{idx + 1}</span>
+                  <button
+                    className="studio-img-set-cover"
+                    onClick={() => handleSetCover(src)}
+                    title="设为封面"
+                  >
+                    设为封面
+                  </button>
+                  <button
+                    className="studio-img-remove"
+                    onClick={() => handleRemoveImage(idx)}
+                    aria-label="删除图片"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {!activeWork.image && !activeWork.images?.length && (
+                <p className="studio-tip" style={{ gridColumn: '1 / -1' }}>
+                  该作品还没有图片。
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
