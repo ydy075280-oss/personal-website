@@ -177,10 +177,16 @@ function buildFeed(siteUrl) {
 }
 
 function buildSitePlugin() {
+  // 以实际构建输出目录为准（支持 vite build --outDir xxx）
+  let outDir = 'dist'
   return {
     name: 'personal-site-build',
     apply: 'build',
+    configResolved(config) {
+      outDir = config.build.outDir || 'dist'
+    },
     closeBundle() {
+      const distDir = join(__dirname, outDir)
       // 1. 复制文章图片到 dist/images（md 中统一引用 /images/xxx）
       if (existsSync(imagesDir)) {
         mkdirSync(join(distDir, 'images'), { recursive: true })
@@ -388,6 +394,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), buildSitePlugin(), devApiPlugin(env)],
+    build: {
+      // 服务器上可直接把产物输出到 nginx 网站目录：
+      // BUILD_OUT_DIR=/var/www/xxx npm run build
+      outDir: process.env.BUILD_OUT_DIR || 'dist',
+    },
     server: {
       host: '0.0.0.0',
       port: 5173,
