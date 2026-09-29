@@ -10,7 +10,6 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const contentDir = join(__dirname, 'src/content')
 const imagesDir = join(contentDir, 'images')
-const distDir = join(__dirname, 'dist')
 
 const MIME = {
   svg: 'image/svg+xml',
@@ -130,7 +129,7 @@ function toRfc822(date) {
   return isNaN(d.getTime()) ? new Date().toUTCString() : d.toUTCString()
 }
 
-function buildFeed(siteUrl) {
+function buildFeed(siteUrl, distDir) {
   const base = siteUrl.endsWith('/') ? siteUrl : siteUrl + '/'
   const files = readdirSync(contentDir).filter((f) => f.endsWith('.md'))
   const items = files
@@ -173,6 +172,7 @@ function buildFeed(siteUrl) {
     '',
   ].join('\n')
 
+  mkdirSync(distDir, { recursive: true })
   writeFileSync(join(distDir, 'feed.xml'), feed, 'utf8')
 }
 
@@ -197,8 +197,8 @@ function buildSitePlugin() {
       }
       // 2. 生成 RSS feed.xml
       const siteUrl = process.env.SITE_URL || 'https://example.com'
-      buildFeed(siteUrl)
-      console.log('[build] feed.xml 已生成，图片已复制到 dist/images')
+      buildFeed(siteUrl, distDir)
+      console.log('[build] feed.xml 已生成，图片已复制到 images/')
     },
   }
 }
