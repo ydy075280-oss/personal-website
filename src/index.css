@@ -16,8 +16,8 @@
   }
 
   body {
-    background-color: #0b0a09;
-    color: #ece8e2;
+    background-color: #f2efe9;
+    color: #1c1a17;
     font-family: 'Outfit', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
     line-height: 1.5;
     overflow-x: hidden;
@@ -26,7 +26,7 @@
   }
 
   ::selection {
-    background-color: rgba(201, 160, 99, 0.3);
+    background-color: rgba(193, 80, 46, 0.22);
   }
 }
 
@@ -46,17 +46,17 @@
   }
 
   .section-header p {
-    @apply text-base text-[#9c9890] max-w-[500px];
+    @apply text-base text-[#57524a] max-w-[500px];
   }
 
   /* 导航项 */
   .nav-item {
-    @apply cursor-pointer text-[0.82rem] font-medium tracking-[0.14em] text-[#9c9890] transition-colors duration-300;
+    @apply cursor-pointer text-[0.82rem] font-medium tracking-[0.14em] text-[#8d877c] transition-colors duration-300;
   }
 
   .nav-item:hover,
   .nav-item.active {
-    color: #ece8e2;
+    color: #1c1a17;
   }
 }
 
@@ -87,9 +87,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2c2926;
+  background: #d6d0c2;
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #c9a063;
+  background: #c1502e;
 }

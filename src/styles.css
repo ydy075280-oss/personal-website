@@ -1,14 +1,14 @@
 /* ===== 暗色编辑式风格：近黑底色 + 金铜点缀 + 衬线大标题 ===== */
 
 :root {
-  --dirt-bg: #0b0a09;        /* 页面底色（近黑） */
-  --dirt-bg-soft: #131211;   /* 卡片 / 浅层底 */
-  --dirt-ink: #ece8e2;       /* 主文字（暖白） */
-  --dirt-sub: #9c9890;       /* 次级文字 */
-  --dirt-muted: #6c6862;     /* 弱化文字 */
-  --dirt-line: #262421;      /* 分隔线 */
-  --dirt-accent: #c9a063;    /* 金铜色点缀 */
-  --dirt-cream: #141312;     /* 反相底（深色） */
+  --dirt-bg: #f2efe9;        /* 页面底色（米白） */
+  --dirt-bg-soft: #e9e5dc;   /* 卡片 / 浅层底 */
+  --dirt-ink: #1c1a17;       /* 主文字（近黑） */
+  --dirt-sub: #57524a;       /* 次级文字 */
+  --dirt-muted: #8d877c;     /* 弱化文字 */
+  --dirt-line: #ddd7ca;      /* 分隔线 */
+  --dirt-accent: #c1502e;    /* 橙红点缀 */
+  --dirt-cream: #e6e1d7;     /* 反相底（浅灰米） */
   --font-serif: 'Fraunces', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
 }
 
@@ -203,6 +203,7 @@ main {
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--dirt-ink);
 }
 
 .marquee-track .dot {
@@ -244,7 +245,7 @@ main {
 }
 
 .insights-long-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.035);
 }
 
 .insights-long-main {
@@ -260,7 +261,7 @@ main {
   letter-spacing: 0.01em;
   line-height: 1.5;
   color: var(--dirt-ink);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
   transform-origin: left center;
   will-change: transform;
 }
@@ -2144,7 +2145,7 @@ main {
 .toc-item:hover,
 .method-card:hover,
 .philosophy-item:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.035);
 }
 
 /* 目录激活态：深底 + 金色左边线 */
@@ -2183,7 +2184,7 @@ main {
 .contact-form-input:focus,
 .contact-form-textarea:focus {
   border-color: var(--dirt-accent);
-  box-shadow: 0 0 0 3px rgba(201, 160, 99, 0.12);
+  box-shadow: 0 0 0 3px rgba(193, 80, 46, 0.12);
 }
 
 .contact-form-submit {
@@ -2199,15 +2200,15 @@ main {
 }
 
 .form-status.success {
-  background: rgba(46, 125, 74, 0.14);
-  border-color: rgba(46, 125, 74, 0.4);
-  color: #6cc48c;
+  background: rgba(46, 125, 74, 0.1);
+  border-color: rgba(46, 125, 74, 0.35);
+  color: #2e7d4a;
 }
 
 .form-status.error {
-  background: rgba(192, 57, 43, 0.14);
-  border-color: rgba(192, 57, 43, 0.4);
-  color: #e08a80;
+  background: rgba(192, 57, 43, 0.08);
+  border-color: rgba(192, 57, 43, 0.35);
+  color: #b03a2e;
 }
 
 /* 代码块与提示色 */
@@ -2218,7 +2219,7 @@ main {
 }
 
 .studio-error {
-  color: #e08a80;
+  color: #b03a2e;
 }
 
 .studio-success p {
@@ -2227,7 +2228,7 @@ main {
 
 /* 文字选中 */
 ::selection {
-  background: rgba(201, 160, 99, 0.3);
+  background: rgba(193, 80, 46, 0.22);
   color: var(--dirt-ink);
 }
 
@@ -2416,8 +2417,8 @@ main {
   font-weight: 600;
   border: none;
   border-radius: 100px;
-  background: rgba(11, 10, 9, 0.72);
-  color: var(--dirt-ink);
+  background: rgba(28, 26, 23, 0.72);
+  color: #f2efe9;
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s, background 0.2s;
@@ -2440,8 +2441,8 @@ main {
   line-height: 1;
   border: none;
   border-radius: 100px;
-  background: rgba(11, 10, 9, 0.72);
-  color: var(--dirt-ink);
+  background: rgba(28, 26, 23, 0.72);
+  color: #f2efe9;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -2449,6 +2450,88 @@ main {
 .studio-img-remove:hover,
 .studio-img-set-cover:hover {
   background: var(--dirt-accent);
+}
+
+/* ============================================================
+   洞察：鼠标悬停在文章上
+   标题变主题色 + 标题与摘要一起右移 + 左上角浮出小箭头
+   ============================================================ */
+
+.toc-item:hover .toc-title,
+.toc-item.active:hover .toc-title,
+.insights-long-item:hover .insights-long-title {
+  color: var(--dirt-accent);
+}
+
+/* --- 洞察列表页：标题 + 摘要 --- */
+.insights-long-item {
+  position: relative;
+}
+
+.insights-long-main {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.insights-long-item:hover .insights-long-main {
+  transform: translateX(14px);
+}
+
+.insights-long-item::before {
+  content: '→';
+  position: absolute;
+  left: -20px;
+  top: 2px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--dirt-accent);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.insights-long-item:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* --- 首页洞察画廊：左侧目录 --- */
+.toc-item {
+  position: relative;
+}
+
+.toc-title,
+.toc-meta {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+}
+
+.toc-item:hover > div {
+  transform: translateX(8px);
+}
+
+.toc-item::before {
+  content: '→';
+  position: absolute;
+  left: 8px;
+  top: 16px;
+  font-size: 0.8rem;
+  color: var(--dirt-accent);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.toc-item:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  /* 小屏边距窄，箭头内收，避免贴到屏幕边缘 */
+  .insights-long-item::before {
+    left: -14px;
+  }
 }
 
 @media (max-width: 768px) {

@@ -60,13 +60,13 @@ export default function Navbar({ activeId, onNavigate }) {
       <nav
         className={`fixed top-0 left-0 w-full z-[100] px-6 md:px-12 h-[72px] flex items-center justify-between transition-colors duration-300 backdrop-blur-md border-b ${
           scrolled
-            ? 'bg-[#0b0a09]/90 border-[#262421]'
-            : 'bg-[#0b0a09]/70 border-[#1c1a18]'
+            ? 'bg-[#f2efe9]/90 border-[#ddd7ca]'
+            : 'bg-[#f2efe9]/70 border-[#e6e1d7]'
         }`}
       >
         <button
           onClick={() => onNavigate('home', 'top')}
-          className="font-medium text-[0.82rem] tracking-[0.28em] uppercase text-[#ece8e2] transition-colors duration-300 hover:text-[#c9a063]"
+          className="font-medium text-[0.82rem] tracking-[0.28em] uppercase text-[#1c1a17] transition-colors duration-300 hover:text-[#c1502e]"
         >
           YANGZHI
         </button>
@@ -95,15 +95,15 @@ export default function Navbar({ activeId, onNavigate }) {
         </div>
 
         {/* Desktop right：语言切换 */}
-        <div className="hidden md:flex items-center rounded-full border border-[#2a2724] overflow-hidden">
+        <div className="hidden md:flex items-center rounded-full border border-[#ddd7ca] overflow-hidden">
           {languages.map((l) => (
             <button
               key={l.code}
               onClick={() => setLang(l.code)}
               className={`h-7 px-3 text-[0.72rem] leading-none transition-colors duration-200 ${
                 lang === l.code
-                  ? 'bg-[#ece8e2] text-[#0b0a09]'
-                  : 'text-[#9c9890] hover:text-[#ece8e2]'
+                  ? 'bg-[#1c1a17] text-[#f2efe9]'
+                  : 'text-[#8d877c] hover:text-[#1c1a17]'
               }`}
             >
               {l.label}
@@ -117,15 +117,15 @@ export default function Navbar({ activeId, onNavigate }) {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="菜单"
         >
-          <span className={`block w-6 h-[2px] bg-[#ece8e2] transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
-          <span className={`block w-6 h-[2px] bg-[#ece8e2] transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block w-6 h-[2px] bg-[#ece8e2] transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
         </button>
       </nav>
 
       {/* Mobile menu overlay */}
       <div
-        className={`fixed inset-0 z-[99] bg-[#0b0a09] transition-transform duration-300 md:hidden ${
+        className={`fixed inset-0 z-[99] bg-[#f2efe9] transition-transform duration-300 md:hidden ${
           menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ top: '72px' }}
@@ -136,7 +136,7 @@ export default function Navbar({ activeId, onNavigate }) {
               key={link.id}
               onClick={() => handleNav(link)}
               className={`text-2xl font-medium tracking-[0.1em] ${
-                activeId === link.id ? 'text-[#c9a063]' : 'text-[#ece8e2]'
+                activeId === link.id ? 'text-[#c1502e]' : 'text-[#1c1a17]'
               }`}
             >
               {link.label}
@@ -144,15 +144,15 @@ export default function Navbar({ activeId, onNavigate }) {
           ))}
 
           {/* 移动端语言切换 */}
-          <div className="flex items-center rounded-full border border-[#2a2724] overflow-hidden">
+          <div className="flex items-center rounded-full border border-[#ddd7ca] overflow-hidden">
             {languages.map((l) => (
               <button
                 key={l.code}
                 onClick={() => setLang(l.code)}
                 className={`h-9 px-4 text-sm leading-none transition-colors duration-200 ${
                   lang === l.code
-                    ? 'bg-[#ece8e2] text-[#0b0a09]'
-                    : 'text-[#9c9890]'
+                    ? 'bg-[#1c1a17] text-[#f2efe9]'
+                    : 'text-[#8d877c]'
                 }`}
               >
                 {l.label}
