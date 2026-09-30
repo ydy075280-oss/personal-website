@@ -2588,6 +2588,48 @@ main {
    写作台：一键推送到 GitHub
    ============================================================ */
 
+/* 写作台：创作 / 管理 两个页面切换 */
+.studio-tabs {
+  display: flex;
+  gap: 24px;
+  max-width: 780px;
+  padding: 0 24px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--dirt-line);
+}
+
+.studio-tab {
+  position: relative;
+  padding: 0 0 12px;
+  background: none;
+  border: none;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--dirt-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.studio-tab:hover {
+  color: var(--dirt-ink);
+}
+
+.studio-tab.active {
+  color: var(--dirt-accent);
+}
+
+.studio-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--dirt-accent);
+}
+
 .studio-push {
   max-width: 780px;
   margin-bottom: 40px;

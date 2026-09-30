@@ -45,6 +45,9 @@ export default function Studio({ onOpenPost }) {
   const [pushOutput, setPushOutput] = useState('')
   const [pushError, setPushError] = useState('')
 
+  // 后台两个页面：创作 / 新增，内容管理
+  const [tab, setTab] = useState('create')
+
   // 作品集导入
   const [worksUrl, setWorksUrl] = useState('')
   const [worksBusy, setWorksBusy] = useState(false)
@@ -458,9 +461,31 @@ export default function Studio({ onOpenPost }) {
     <div className="studio-page">
       <div className="section-header">
         <h2>写作台</h2>
-        <p>粘贴 Notion / 任意网页链接，自动导入并转为 Markdown，预览确认后发布到本站。Obsidian 里写的文章放到 src/content/ 目录即可直接出现。</p>
+        <p>
+          {tab === 'create'
+            ? '在后台直接写新文章、粘贴链接导入，或从 Notion 更新作品集；完成后可一键推送上线。'
+            : '管理已发布文章与作品集：编辑、删除，以及调整作品图片的顺序与封面。'}
+        </p>
       </div>
 
+      {/* 页面切换 */}
+      <div className="studio-tabs">
+        <button
+          className={`studio-tab ${tab === 'create' ? 'active' : ''}`}
+          onClick={() => setTab('create')}
+        >
+          创作 / 新增
+        </button>
+        <button
+          className={`studio-tab ${tab === 'manage' ? 'active' : ''}`}
+          onClick={() => setTab('manage')}
+        >
+          内容管理
+        </button>
+      </div>
+
+      {tab === 'create' && (
+      <>
       {/* 一键推送到 GitHub */}
       <div className="studio-push">
         <div className="studio-push-row">
@@ -652,6 +677,11 @@ export default function Studio({ onOpenPost }) {
         {worksMsg && <p className="studio-success" style={{ display: 'block', marginTop: 12 }}>{worksMsg}</p>}
       </div>
 
+      </>
+      )}
+
+      {tab === 'manage' && (
+      <>
       {/* 文章管理 */}
       <div className="studio-list">
         <h3>已发布文章（{posts.length}）</h3>
@@ -805,6 +835,8 @@ export default function Studio({ onOpenPost }) {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   )
 }
