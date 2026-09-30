@@ -2671,3 +2671,35 @@ main {
     flex-direction: column;
   }
 }
+
+/* ============================================================
+   首页首屏 / 精选作品区：深色区块
+   局部覆盖设计变量，区块内所有元素自动切换为深色配色
+   （强调色提亮，保证在深底上的可读性）
+   ============================================================ */
+
+.hero-section,
+.home-works {
+  --dirt-bg: #0b0a09;
+  --dirt-bg-soft: #151412;
+  --dirt-ink: #ece8e2;
+  --dirt-sub: #9c9890;
+  --dirt-muted: #6c6862;
+  --dirt-line: #262421;
+  --dirt-cream: #141312;
+  --dirt-accent: #e2754f;
+
+  background: var(--dirt-bg);
+  color: var(--dirt-ink);
+}
+
+/* 区块说明文字用的是 Tailwind 硬编码色值，需单独覆盖 */
+.home-works .section-header p {
+  color: var(--dirt-sub);
+}
+
+/* 深色区块内的轮播卡片底与滚动条 */
+.home-works .work-carousel-img-wrap {
+  background: var(--dirt-bg-soft);
+  border-radius: 12px;
+}
