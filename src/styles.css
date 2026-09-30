@@ -1823,13 +1823,18 @@ main {
   padding: 120px 12px 140px;
 }
 
+/* 写作台各区块统一宽度与内边距：所有输入框左边缘对齐在同一条竖线上 */
 .studio-page .section-header {
   max-width: 780px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .studio-import {
   max-width: 780px;
   margin-bottom: 40px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .studio-input-row {
@@ -1921,7 +1926,7 @@ main {
 .studio-editor {
   max-width: 780px;
   margin-bottom: 48px;
-  padding: 32px;
+  padding: 24px;
   border: 1px solid var(--dirt-line);
   background: var(--dirt-bg-soft);
 }
@@ -2014,6 +2019,8 @@ main {
 
 .studio-list {
   max-width: 780px;
+  padding-left: 24px;
+  padding-right: 24px;
 }
 
 .studio-list h3 {
@@ -2035,7 +2042,7 @@ main {
   grid-template-columns: 120px 1fr auto;
   align-items: center;
   gap: 16px;
-  padding: 16px 8px;
+  padding: 16px 0;
   border-bottom: 1px solid var(--dirt-line);
 }
 
@@ -2582,6 +2589,7 @@ main {
    ============================================================ */
 
 .studio-push {
+  max-width: 780px;
   margin-bottom: 40px;
   padding: 20px 24px;
   border: 1px solid var(--dirt-line);
