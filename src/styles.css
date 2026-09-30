@@ -2763,7 +2763,7 @@ main {
   }
 }
 
-/* 首页洞察画廊：标题随区块出现，文章逐条滚入时各自弹出 */
+/* 首页洞察画廊：标题随区块出现 */
 .home-insights .section-header {
   opacity: 0;
 }
@@ -2772,12 +2772,16 @@ main {
   animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 只有被标记为「等待」的条目才隐藏，滚进视口后过渡弹出（JS 失效时内容照常显示） */
 .home-insights .toc-item {
-  opacity: 0;
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s ease;
 }
 
-.home-insights .toc-item.in-view {
-  animation: insightPop 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+.home-insights .toc-item.pop-pending {
+  opacity: 0;
+  transform: translateY(28px);
 }
 
 /* 洞察列表页：同样逐条触发 */
@@ -2790,20 +2794,33 @@ main {
 }
 
 .insights-list-page .insights-long-item {
-  opacity: 0;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.2s ease;
 }
 
-.insights-list-page .insights-long-item.in-view {
-  animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+.insights-list-page .insights-long-item.pop-pending {
+  opacity: 0;
+  transform: translateY(28px);
+}
+
+/* 列表页里标题的轻微放大仍走它自己的过渡 */
+.insights-list-page .insights-long-title {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
 }
 
 /* 尊重系统的「减少动态效果」设置 */
 @media (prefers-reduced-motion: reduce) {
   .home-insights .section-header,
-  .home-insights .toc-item,
-  .insights-list-page .section-header,
-  .insights-list-page .insights-long-item {
+  .insights-list-page .section-header {
     opacity: 1;
     animation: none !important;
+  }
+
+  .home-insights .toc-item.pop-pending,
+  .insights-list-page .insights-long-item.pop-pending {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

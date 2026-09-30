@@ -28,22 +28,38 @@ export default function InsightsList() {
     )
     blockIo.observe(page)
 
-    const itemIo = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('in-view')
-            itemIo.unobserve(entry.target)
-          }
-        })
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
-    )
-    page.querySelectorAll('.insights-long-item').forEach((el) => itemIo.observe(el))
+    const items = Array.from(page.querySelectorAll('.insights-long-item'))
+    const viewportH = window.innerHeight
+
+    items.forEach((el) => {
+      if (el.getBoundingClientRect().top > viewportH) {
+        el.classList.add('pop-pending')
+      } else {
+        el.classList.add('in-view')
+      }
+    })
+
+    const pending = items.filter((el) => el.classList.contains('pop-pending'))
+    const itemIo = pending.length
+      ? new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.remove('pop-pending')
+                entry.target.classList.add('in-view')
+                itemIo.unobserve(entry.target)
+              }
+            })
+          },
+          { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+        )
+      : null
+
+    if (itemIo) pending.forEach((el) => itemIo.observe(el))
 
     return () => {
       blockIo.disconnect()
-      itemIo.disconnect()
+      if (itemIo) itemIo.disconnect()
     }
   }, [])
 
