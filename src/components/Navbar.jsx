@@ -13,9 +13,13 @@ const languages = [
   { code: 'es', label: 'ES' },
 ]
 
+// 首页中的深色区块（导航浮在它们上方时自动反色）
+const DARK_SECTIONS = ['home', 'home-works']
+
 export default function Navbar({ activeId, onNavigate }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [overDark, setOverDark] = useState(false)
   const [lang, setLang] = useState(() => {
     try {
       return localStorage.getItem('lang') || 'zh'
@@ -32,10 +36,34 @@ export default function Navbar({ activeId, onNavigate }) {
     }
   }, [lang])
 
+  // 滚动位置是否落在深色区块上
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', onScroll)
-    return () => window.removeEventListener('scroll', onScroll)
+    const update = () => {
+      const y = window.scrollY
+      const navH = 72
+      setScrolled(y > 50)
+
+      const over = DARK_SECTIONS.some((id) => {
+        const el = document.getElementById(id)
+        if (!el) return false
+        const top = el.offsetTop - navH
+        const bottom = el.offsetTop + el.offsetHeight - navH
+        return y >= top && y < bottom
+      })
+      setOverDark(over)
+    }
+
+    update()
+    const onRoute = () => window.setTimeout(update, 120)
+
+    window.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    window.addEventListener('hashchange', onRoute)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+      window.removeEventListener('hashchange', onRoute)
+    }
   }, [])
 
   useEffect(() => {
@@ -55,18 +83,25 @@ export default function Navbar({ activeId, onNavigate }) {
     }
   }
 
+  // 移动端菜单展开时，背景是米白，导航需要保持深色文字
+  const dark = overDark && !menuOpen
+
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 w-full z-[100] px-6 md:px-12 h-[72px] flex items-center justify-between transition-colors duration-300 backdrop-blur-md border-b ${
-          scrolled
-            ? 'bg-[#f2efe9]/90 border-[#ddd7ca]'
-            : 'bg-[#f2efe9]/70 border-[#e6e1d7]'
-        }`}
+        className={`fixed top-0 left-0 w-full z-[100] px-6 md:px-12 h-[72px] flex items-center justify-between transition-colors duration-300 border-b ${
+          dark
+            ? 'bg-transparent border-transparent'
+            : scrolled
+              ? 'bg-[#f2efe9]/90 border-[#ddd7ca] backdrop-blur-md'
+              : 'bg-[#f2efe9]/70 border-[#e6e1d7] backdrop-blur-md'
+        } ${dark ? 'nav-on-dark' : ''}`}
       >
         <button
           onClick={() => onNavigate('home', 'top')}
-          className="font-medium text-[0.82rem] tracking-[0.28em] uppercase text-[#1c1a17] transition-colors duration-300 hover:text-[#c1502e]"
+          className={`font-medium text-[0.82rem] tracking-[0.28em] uppercase transition-colors duration-300 ${
+            dark ? 'text-[#ece8e2] hover:text-[#e2754f]' : 'text-[#1c1a17] hover:text-[#c1502e]'
+          }`}
         >
           YANGZHI
         </button>
@@ -95,15 +130,23 @@ export default function Navbar({ activeId, onNavigate }) {
         </div>
 
         {/* Desktop right：语言切换 */}
-        <div className="hidden md:flex items-center rounded-full border border-[#ddd7ca] overflow-hidden">
+        <div
+          className={`hidden md:flex items-center rounded-full border overflow-hidden transition-colors duration-300 ${
+            dark ? 'border-[#3a3733]' : 'border-[#ddd7ca]'
+          }`}
+        >
           {languages.map((l) => (
             <button
               key={l.code}
               onClick={() => setLang(l.code)}
               className={`h-7 px-3 text-[0.72rem] leading-none transition-colors duration-200 ${
                 lang === l.code
-                  ? 'bg-[#1c1a17] text-[#f2efe9]'
-                  : 'text-[#8d877c] hover:text-[#1c1a17]'
+                  ? dark
+                    ? 'bg-[#ece8e2] text-[#0b0a09]'
+                    : 'bg-[#1c1a17] text-[#f2efe9]'
+                  : dark
+                    ? 'text-[#9c9890] hover:text-[#ece8e2]'
+                    : 'text-[#8d877c] hover:text-[#1c1a17]'
               }`}
             >
               {l.label}
@@ -117,9 +160,9 @@ export default function Navbar({ activeId, onNavigate }) {
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="菜单"
         >
-          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
-          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block w-6 h-[2px] bg-[#1c1a17] transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+          <span className={`block w-6 h-[2px] transition-all duration-300 ${dark ? 'bg-[#ece8e2]' : 'bg-[#1c1a17]'} ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
+          <span className={`block w-6 h-[2px] transition-all duration-300 ${dark ? 'bg-[#ece8e2]' : 'bg-[#1c1a17]'} ${menuOpen ? 'opacity-0' : ''}`} />
+          <span className={`block w-6 h-[2px] transition-all duration-300 ${dark ? 'bg-[#ece8e2]' : 'bg-[#1c1a17]'} ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
         </button>
       </nav>
 

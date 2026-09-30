@@ -2737,3 +2737,13 @@ main {
   background: var(--dirt-bg-soft);
   border-radius: 12px;
 }
+
+/* 导航浮在深色区块上方时：文字转浅色（特异性高于 index.css 里的 .nav-item） */
+.nav-on-dark .nav-item {
+  color: #9c9890;
+}
+
+.nav-on-dark .nav-item:hover,
+.nav-on-dark .nav-item.active {
+  color: #ece8e2;
+}
