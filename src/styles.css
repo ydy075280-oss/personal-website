@@ -2576,3 +2576,46 @@ main {
   flex-wrap: wrap;
   margin-top: 12px;
 }
+
+/* ============================================================
+   写作台：一键推送到 GitHub
+   ============================================================ */
+
+.studio-push {
+  margin-bottom: 40px;
+  padding: 20px 24px;
+  border: 1px solid var(--dirt-line);
+  background: var(--dirt-bg-soft);
+}
+
+.studio-push-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.studio-push-row .studio-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.studio-push-output {
+  margin-top: 12px;
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--dirt-line);
+  background: var(--dirt-cream);
+  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--dirt-sub);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+@media (max-width: 640px) {
+  .studio-push-row {
+    flex-direction: column;
+  }
+}

@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
+import { execSync } from 'node:child_process'
 import { dirname, join, extname } from 'node:path'
 import {
   readdirSync, readFileSync, writeFileSync, mkdirSync, copyFileSync,
@@ -315,6 +316,41 @@ function devApiPlugin(env) {
             return sendJson(res, 200, { ok: true, slug: finalSlug, isNew })
           } catch (e) {
             return sendJson(res, 500, { error: `保存失败：${e.message}` })
+          }
+        }
+
+        // 后台一键推送：add → commit → push（仅本地开发服务可用，构建产物里没有这个接口）
+        if (urlPath === '/api/git/push' && req.method === 'POST') {
+          let body
+          try { body = await readJsonBody(req) } catch (e) { return sendJson(res, 400, { error: e.message }) }
+          const message = String(body.message || '').trim() || `site update ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`
+
+          // 必须「删除」GIT_DIR / GIT_WORK_TREE，不能设成 null：
+          // Windows 下 null 会被转成字符串 "null"，git 会报 not a git repository: 'null'
+          const cleanEnv = { ...process.env }
+          delete cleanEnv.GIT_DIR
+          delete cleanEnv.GIT_WORK_TREE
+
+          const run = (cmd) =>
+            execSync(cmd, {
+              cwd: process.cwd(),
+              encoding: 'utf8',
+              env: cleanEnv,
+            })
+
+          try {
+            run('git add -A')
+            const status = run('git status --short')
+            if (!status.trim()) {
+              return sendJson(res, 200, { ok: true, skipped: true, output: '没有需要提交的改动' })
+            }
+            const commit = run(`git commit -m ${JSON.stringify(message)}`)
+            const push = run('git push origin main')
+            return sendJson(res, 200, { ok: true, output: [commit.trim(), push.trim()].filter(Boolean).join('\n') })
+          } catch (e) {
+            const detail = `${e.stdout || ''}${e.stderr || ''}`.trim()
+            console.error('[git-push] 失败:', detail || e.message)
+            return sendJson(res, 500, { error: detail || e.message || '推送失败（原因未知）' })
           }
         }
 

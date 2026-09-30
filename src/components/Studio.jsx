@@ -38,6 +38,12 @@ export default function Studio({ onOpenPost }) {
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
 
+  // 一键推送到 GitHub
+  const [pushMsg, setPushMsg] = useState('')
+  const [pushing, setPushing] = useState(false)
+  const [pushOutput, setPushOutput] = useState('')
+  const [pushError, setPushError] = useState('')
+
   // 作品集导入
   const [worksUrl, setWorksUrl] = useState('')
   const [worksBusy, setWorksBusy] = useState(false)
@@ -294,6 +300,29 @@ export default function Studio({ onOpenPost }) {
     uploadImages(Array.from(e.dataTransfer?.files || []))
   }
 
+  /* ---------- 一键推送到 GitHub ---------- */
+
+  const handlePush = async () => {
+    setPushing(true)
+    setPushOutput('')
+    setPushError('')
+    try {
+      const res = await fetch('/api/git/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: pushMsg }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '推送失败')
+      setPushOutput(data.skipped ? data.output : `已推送 ✓\n${data.output || ''}`)
+      setPushMsg('')
+    } catch (err) {
+      setPushError(err.message || String(err))
+    } finally {
+      setPushing(false)
+    }
+  }
+
   const handleSave = async () => {
     if (!draft || !draft.title.trim()) return
     setSaving(true)
@@ -403,6 +432,29 @@ export default function Studio({ onOpenPost }) {
       <div className="section-header">
         <h2>写作台</h2>
         <p>粘贴 Notion / 任意网页链接，自动导入并转为 Markdown，预览确认后发布到本站。Obsidian 里写的文章放到 src/content/ 目录即可直接出现。</p>
+      </div>
+
+      {/* 一键推送到 GitHub */}
+      <div className="studio-push">
+        <div className="studio-push-row">
+          <input
+            className="studio-input"
+            type="text"
+            placeholder="更新说明（可选，默认按时间生成）"
+            value={pushMsg}
+            onChange={(e) => setPushMsg(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handlePush()}
+            disabled={pushing}
+          />
+          <button className="studio-btn primary" onClick={handlePush} disabled={pushing}>
+            {pushing ? '推送中…' : '推送到 GitHub'}
+          </button>
+        </div>
+        <p className="studio-tip">
+          会把本地所有改动提交并推送到 main 分支。若已配置 GitHub Actions，推送后服务器会自动部署上线。
+        </p>
+        {pushError && <p className="studio-error">{pushError}</p>}
+        {pushOutput && <pre className="studio-push-output">{pushOutput}</pre>}
       </div>
 
       {/* 导入区 */}
