@@ -2673,6 +2673,40 @@ main {
 }
 
 /* ============================================================
+   写作台：新建作品表单 / 作品图片拖放上传
+   ============================================================ */
+
+.studio-works-create {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.6fr 0.8fr 1.1fr auto;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.studio-works-create .studio-input {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+}
+
+.studio-img-grid.drag-over {
+  outline: 1px dashed var(--dirt-accent);
+  outline-offset: 8px;
+  background: rgba(193, 80, 46, 0.04);
+}
+
+@media (max-width: 900px) {
+  .studio-works-create {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .studio-works-create {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================
    首页首屏 / 精选作品区：深色区块
    局部覆盖设计变量，区块内所有元素自动切换为深色配色
    （强调色提亮，保证在深底上的可读性）

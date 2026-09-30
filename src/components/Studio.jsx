@@ -64,6 +64,13 @@ export default function Studio({ onOpenPost }) {
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const dragIndexRef = useRef(null)
 
+  // 新建作品 / 上传作品图片
+  const [newWork, setNewWork] = useState({ title: '', type: '', year: '', status: '', url: '' })
+  const [creatingWork, setCreatingWork] = useState(false)
+  const [workUploading, setWorkUploading] = useState(false)
+  const [workDragOver, setWorkDragOver] = useState(false)
+  const workFileRef = useRef(null)
+
   const activeWork = works.find((w) => w.id === activeWorkId) || null
 
   const refreshPosts = () => setPosts(getAllPosts())
@@ -168,6 +175,89 @@ export default function Studio({ onOpenPost }) {
     const w = activeWork
     if (!w) return
     saveWork({ id: w.id, image: src })
+  }
+
+  // 新建作品
+  const handleCreateWork = async () => {
+    if (!newWork.title.trim()) {
+      setWorksError('请先填写作品标题')
+      return
+    }
+    setCreatingWork(true)
+    setWorksError('')
+    setWorksMsg('')
+    try {
+      const res = await fetch('/api/works/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newWork),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '新建失败')
+      setWorks((prev) => [...prev, data.work])
+      setNewWork({ title: '', type: '', year: '', status: '', url: '' })
+      setActiveWorkId(data.work.id)
+      setWorksMsg('作品已创建，接着上传图片吧')
+      markWorksUpdated()
+    } catch (err) {
+      setWorksError(err.message || String(err))
+    } finally {
+      setCreatingWork(false)
+    }
+  }
+
+  // 上传作品图片：存到 public/works/，追加到当前作品的图库末尾
+  const uploadWorkImages = async (files) => {
+    const w = activeWork
+    if (!w) {
+      setWorksError('请先点「管理图片」选中一个作品')
+      return
+    }
+    const list = (files || []).filter((f) => f && f.type.startsWith('image/'))
+    if (list.length === 0) return
+
+    setWorkUploading(true)
+    setWorksError('')
+    const urls = []
+
+    try {
+      for (const file of list) {
+        if (file.size > 8 * 1024 * 1024) throw new Error(`${file.name} 超过 8MB，请先压缩`)
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = () => reject(new Error(`读取 ${file.name} 失败`))
+          reader.readAsDataURL(file)
+        })
+        const res = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: file.name, data: dataUrl, target: 'works' }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || '上传失败')
+        urls.push(data.url)
+      }
+
+      if (urls.length > 0) {
+        const images = [...(w.images || []), ...urls]
+        // 还没有封面时，第一张自动作为作品首页图
+        const image = w.image || urls[0]
+        await saveWork({ id: w.id, image, images })
+      }
+    } catch (err) {
+      setWorksError(err.message || String(err))
+    } finally {
+      setWorkUploading(false)
+    }
+  }
+
+  const handleWorkGridDrop = (e) => {
+    const files = Array.from(e.dataTransfer?.files || []).filter((f) => f.type.startsWith('image/'))
+    setWorkDragOver(false)
+    if (files.length === 0) return
+    e.preventDefault()
+    uploadWorkImages(files)
   }
 
   const handleDropImage = (toIdx) => {
@@ -715,7 +805,53 @@ export default function Studio({ onOpenPost }) {
       {/* 作品集管理 */}
       <div className="studio-list" style={{ borderTop: '1px solid var(--dirt-line)', marginTop: 48, paddingTop: 32 }}>
         <h3>作品集管理（{works.length}）</h3>
-        {works.length === 0 && <p className="studio-tip">还没有作品。使用上方「从 Notion 导入作品集」功能添加。</p>}
+
+        {/* 新建作品 */}
+        <div className="studio-works-create">
+          <input
+            className="studio-input"
+            placeholder="作品标题"
+            value={newWork.title}
+            onChange={(e) => setNewWork({ ...newWork, title: e.target.value })}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateWork()}
+            disabled={creatingWork}
+          />
+          <input
+            className="studio-input"
+            placeholder="类型（如：工业设计）"
+            value={newWork.type}
+            onChange={(e) => setNewWork({ ...newWork, type: e.target.value })}
+            disabled={creatingWork}
+          />
+          <input
+            className="studio-input"
+            placeholder="年份"
+            value={newWork.year}
+            onChange={(e) => setNewWork({ ...newWork, year: e.target.value })}
+            disabled={creatingWork}
+          />
+          <input
+            className="studio-input"
+            placeholder="状态（可选）"
+            value={newWork.status}
+            onChange={(e) => setNewWork({ ...newWork, status: e.target.value })}
+            disabled={creatingWork}
+          />
+          <input
+            className="studio-input"
+            placeholder="项目链接（可选）"
+            value={newWork.url}
+            onChange={(e) => setNewWork({ ...newWork, url: e.target.value })}
+            disabled={creatingWork}
+          />
+          <button className="studio-btn primary" onClick={handleCreateWork} disabled={creatingWork}>
+            {creatingWork ? '创建中…' : '+ 新建作品'}
+          </button>
+        </div>
+
+        {works.length === 0 && (
+          <p className="studio-tip">还没有作品。可以上面手动新建，或用「从 Notion 导入作品集」批量导入。</p>
+        )}
         <ul>
           {works.map((w) => (
             <li key={w.id}>
@@ -769,7 +905,41 @@ export default function Studio({ onOpenPost }) {
               按住图片拖拽即可调整顺序，右上角 × 删除图片，左下角可将该图设为封面。所有改动自动保存到 works.json。
             </p>
 
-            <div className="studio-img-grid">
+            <div className="studio-upload">
+              <button
+                className="studio-btn small"
+                onClick={() => workFileRef.current?.click()}
+                disabled={workUploading}
+              >
+                {workUploading ? '上传中…' : '上传图片'}
+              </button>
+              <input
+                ref={workFileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => {
+                  uploadWorkImages(Array.from(e.target.files || []))
+                  e.target.value = ''
+                }}
+              />
+              <span className="studio-tip" style={{ margin: 0 }}>
+                支持一次多选，图片会追加到图库末尾；也可以直接把图片拖进下方图片区域。
+              </span>
+            </div>
+
+            <div
+              className={`studio-img-grid ${workDragOver ? 'drag-over' : ''}`}
+              onDragOver={(e) => {
+                if (e.dataTransfer?.types?.includes('Files')) {
+                  e.preventDefault()
+                  setWorkDragOver(true)
+                }
+              }}
+              onDragLeave={() => setWorkDragOver(false)}
+              onDrop={handleWorkGridDrop}
+            >
               {activeWork.image && (
                 <div className="studio-img-item cover">
                   <img src={activeWork.image} alt="封面" />

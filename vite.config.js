@@ -299,10 +299,16 @@ function devApiPlugin(env) {
             .trim()
           const base = rawName ? slugify(rawName) : ''
           const filename = `${base || 'image'}-${Date.now()}.${ext}`
-          mkdirSync(imagesDir, { recursive: true })
-          writeFileSync(join(imagesDir, filename), bytes)
 
-          const url = `/images/${filename}`
+          // target = 'works' 时存到 public/works/（作品图片），默认存文章图片目录
+          const isWorks = String(body.target || 'content') === 'works'
+          const destDir = isWorks ? join(__dirname, 'public', 'works') : imagesDir
+          const urlPrefix = isWorks ? '/works/' : '/images/'
+
+          mkdirSync(destDir, { recursive: true })
+          writeFileSync(join(destDir, filename), bytes)
+
+          const url = `${urlPrefix}${filename}`
           return sendJson(res, 200, { ok: true, url, filename, markdown: `![](${url})` })
         }
 
@@ -391,6 +397,41 @@ function devApiPlugin(env) {
           } catch (e) {
             return sendJson(res, 500, { error: `删除失败：${e.message}` })
           }
+        }
+
+        // 新建作品：追加到 works.json 末尾
+        if (urlPath === '/api/works/create' && req.method === 'POST') {
+          let body
+          try { body = await readJsonBody(req) } catch (e) { return sendJson(res, 400, { error: e.message }) }
+
+          const title = String(body.title || '').trim()
+          if (!title) return sendJson(res, 400, { error: '请填写作品标题' })
+
+          const worksDir = join(__dirname, 'public', 'works')
+          const worksJson = join(worksDir, 'works.json')
+          let works = []
+          if (existsSync(worksJson)) {
+            try {
+              const parsed = JSON.parse(readFileSync(worksJson, 'utf8'))
+              if (Array.isArray(parsed)) works = parsed
+            } catch { /* 文件损坏时从空列表重建 */ }
+          }
+
+          const meta = [String(body.type || '').trim(), String(body.year || '').trim()].filter(Boolean)
+          const work = {
+            id: `work-${Date.now()}`,
+            title,
+            meta,
+            image: '',
+            status: String(body.status || '').trim(),
+            url: String(body.url || '').trim(),
+            images: [],
+          }
+          works.push(work)
+
+          mkdirSync(worksDir, { recursive: true })
+          writeFileSync(worksJson, JSON.stringify(works, null, 2) + '\n', 'utf8')
+          return sendJson(res, 200, { ok: true, work })
         }
 
         if (urlPath === '/api/works/update' && req.method === 'POST') {
