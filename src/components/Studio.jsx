@@ -37,6 +37,7 @@ export default function Studio({ onOpenPost }) {
   const [dragFile, setDragFile] = useState(false)
   const textareaRef = useRef(null)
   const fileInputRef = useRef(null)
+  const titleRef = useRef(null)
 
   // 一键推送到 GitHub
   const [pushMsg, setPushMsg] = useState('')
@@ -323,8 +324,34 @@ export default function Studio({ onOpenPost }) {
     }
   }
 
+  // 从零开始写一篇新文章
+  const handleNewPost = () => {
+    setUrl('')
+    setError('')
+    setMode(null)
+    setSavedSlug(null)
+    setEditingSlug(null)
+    setDraft({
+      title: '',
+      tag: '',
+      date: new Date().toISOString().slice(0, 7),
+      content: '',
+    })
+    requestAnimationFrame(() => titleRef.current?.focus())
+  }
+
   const handleSave = async () => {
-    if (!draft || !draft.title.trim()) return
+    if (!draft) return
+    if (!draft.title.trim()) {
+      setError('请先填写标题')
+      titleRef.current?.focus()
+      return
+    }
+    if (!draft.content.trim()) {
+      setError('正文还是空的，写点什么再发布吧')
+      textareaRef.current?.focus()
+      return
+    }
     setSaving(true)
     setError('')
     try {
@@ -478,6 +505,15 @@ export default function Studio({ onOpenPost }) {
           NOTION_TOKEN（见 README）。
         </p>
         {error && <p className="studio-error">{error}</p>}
+
+        <div className="studio-actions" style={{ margin: '16px 0 0' }}>
+          <button className="studio-btn" onClick={handleNewPost}>
+            + 新建空白文章
+          </button>
+          <span className="studio-tip" style={{ margin: 0 }}>
+            想直接写？点这里开一篇新文章，边写边预览，写完点「发布到网站」。
+          </span>
+        </div>
       </div>
 
       {/* 编辑区 */}
@@ -487,8 +523,10 @@ export default function Studio({ onOpenPost }) {
             <label>
               标题
               <input
+                ref={titleRef}
                 className="studio-input"
                 value={draft.title}
+                placeholder="给这篇文章起个标题"
                 onChange={(e) => setDraft({ ...draft, title: e.target.value })}
               />
             </label>
