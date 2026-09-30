@@ -2540,3 +2540,39 @@ main {
     opacity: 1;
   }
 }
+
+/* ============================================================
+   写作台：文章图片上传（按钮选择 / 拖入正文框）
+   ============================================================ */
+
+.studio-dropzone {
+  position: relative;
+}
+
+.studio-dropzone.drag-over .studio-textarea {
+  border-color: var(--dirt-accent);
+  background: rgba(193, 80, 46, 0.04);
+}
+
+.studio-dropzone-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--dirt-accent);
+  background: rgba(242, 239, 233, 0.88);
+  border: 1px dashed var(--dirt-accent);
+  pointer-events: none;
+}
+
+.studio-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}

@@ -31,6 +31,13 @@ export default function Studio({ onOpenPost }) {
   const [posts, setPosts] = useState(getAllPosts())
   const [editingSlug, setEditingSlug] = useState(null)
 
+  // 文章图片上传
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [dragFile, setDragFile] = useState(false)
+  const textareaRef = useRef(null)
+  const fileInputRef = useRef(null)
+
   // 作品集导入
   const [worksUrl, setWorksUrl] = useState('')
   const [worksBusy, setWorksBusy] = useState(false)
@@ -215,6 +222,78 @@ export default function Studio({ onOpenPost }) {
     }
   }
 
+  /* ---------- 文章图片上传 ---------- */
+
+  // 把 Markdown 片段插入到正文光标处
+  const insertAtCursor = (text) => {
+    const ta = textareaRef.current
+    const content = draft?.content ?? ''
+    if (!ta) {
+      setDraft((d) => ({ ...d, content: (d?.content ?? '') + text }))
+      return
+    }
+    const start = ta.selectionStart ?? content.length
+    const end = ta.selectionEnd ?? start
+    const next = content.slice(0, start) + text + content.slice(end)
+    setDraft((d) => ({ ...d, content: next }))
+    requestAnimationFrame(() => {
+      ta.focus()
+      const pos = start + text.length
+      ta.selectionStart = pos
+      ta.selectionEnd = pos
+    })
+  }
+
+  // 上传一张或多张图片，成功后一次性插入正文
+  const uploadImages = async (files) => {
+    const list = (files || []).filter((f) => f && f.type.startsWith('image/'))
+    if (list.length === 0) {
+      setUploadError('请选择图片文件')
+      return
+    }
+
+    setUploading(true)
+    setUploadError('')
+    const urls = []
+
+    try {
+      for (const file of list) {
+        if (file.size > 8 * 1024 * 1024) {
+          throw new Error(`${file.name} 超过 8MB，请先压缩`)
+        }
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = () => reject(new Error(`读取 ${file.name} 失败`))
+          reader.readAsDataURL(file)
+        })
+
+        const res = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: file.name, data: dataUrl }),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || '上传失败')
+        urls.push(data.url)
+      }
+
+      if (urls.length > 0) {
+        insertAtCursor(`\n${urls.map((u) => `![](${u})`).join('\n\n')}\n`)
+      }
+    } catch (err) {
+      setUploadError(err.message || String(err))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDropFiles = (e) => {
+    e.preventDefault()
+    setDragFile(false)
+    uploadImages(Array.from(e.dataTransfer?.files || []))
+  }
+
   const handleSave = async () => {
     if (!draft || !draft.title.trim()) return
     setSaving(true)
@@ -382,13 +461,50 @@ export default function Studio({ onOpenPost }) {
           </div>
           <label>
             Markdown 正文（可直接编辑）
-            <textarea
-              className="studio-textarea"
-              rows={14}
-              value={draft.content}
-              onChange={(e) => setDraft({ ...draft, content: e.target.value })}
-            />
+            <div
+              className={`studio-dropzone ${dragFile ? 'drag-over' : ''}`}
+              onDragOver={(e) => { e.preventDefault(); setDragFile(true) }}
+              onDragLeave={(e) => {
+                if (e.currentTarget.contains(e.relatedTarget)) return
+                setDragFile(false)
+              }}
+              onDrop={handleDropFiles}
+            >
+              <textarea
+                ref={textareaRef}
+                className="studio-textarea"
+                rows={14}
+                value={draft.content}
+                onChange={(e) => setDraft({ ...draft, content: e.target.value })}
+              />
+              {dragFile && <div className="studio-dropzone-hint">松开即可上传图片</div>}
+            </div>
           </label>
+
+          <div className="studio-upload">
+            <button
+              className="studio-btn small"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? '上传中…' : '上传图片'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={(e) => {
+                uploadImages(Array.from(e.target.files || []))
+                e.target.value = ''
+              }}
+            />
+            <span className="studio-tip" style={{ margin: 0 }}>
+              支持 png / jpg / gif / webp / svg，单张 ≤ 8MB；上传后自动插入到光标位置，也可直接把图片拖进正文框
+            </span>
+          </div>
+          {uploadError && <p className="studio-error">{uploadError}</p>}
 
           <div className="studio-actions">
             <button

@@ -264,6 +264,47 @@ function devApiPlugin(env) {
           }
         }
 
+        // 文章图片上传：base64 → 写入 src/content/images/，返回可直接引用的路径
+        if (urlPath === '/api/upload/image' && req.method === 'POST') {
+          let body
+          try { body = await readJsonBody(req) } catch (e) { return sendJson(res, 400, { error: e.message }) }
+
+          const dataUrl = String(body.data || '')
+          const m = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/)
+          if (!m) return sendJson(res, 400, { error: '不是有效的图片数据' })
+
+          const extMap = {
+            'image/png': 'png',
+            'image/jpeg': 'jpg',
+            'image/jpg': 'jpg',
+            'image/gif': 'gif',
+            'image/webp': 'webp',
+            'image/avif': 'avif',
+            'image/svg+xml': 'svg',
+          }
+          const ext = extMap[m[1]]
+          if (!ext) return sendJson(res, 400, { error: `暂不支持的图片格式：${m[1]}` })
+
+          const bytes = Buffer.from(m[2], 'base64')
+          if (bytes.length > 8 * 1024 * 1024) {
+            return sendJson(res, 400, { error: '图片超过 8MB，请先压缩' })
+          }
+          if (bytes.length === 0) return sendJson(res, 400, { error: '图片内容为空' })
+
+          // 文件名只用 ASCII（中文名在 URL / 服务器上容易出问题），英文原名保留语义
+          const rawName = String(body.name || '')
+            .replace(/\.[^.]+$/, '')
+            .replace(/[^\x00-\x7F]/g, '')
+            .trim()
+          const base = rawName ? slugify(rawName) : ''
+          const filename = `${base || 'image'}-${Date.now()}.${ext}`
+          mkdirSync(imagesDir, { recursive: true })
+          writeFileSync(join(imagesDir, filename), bytes)
+
+          const url = `/images/${filename}`
+          return sendJson(res, 200, { ok: true, url, filename, markdown: `![](${url})` })
+        }
+
         if (urlPath === '/api/import/save' && req.method === 'POST') {
           let body
           try { body = await readJsonBody(req) } catch (e) { return sendJson(res, 400, { error: e.message }) }
