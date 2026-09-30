@@ -9,8 +9,30 @@ const insights = getAllPosts().slice(0, HOME_POST_LIMIT)
 export default function Insights() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [direction, setDirection] = useState('down')
+  const [visible, setVisible] = useState(false)
   const articlesRef = useRef(null)
+  const sectionRef = useRef(null)
   const active = insights[activeIndex]
+
+  // 滚动进入视口时触发：目录里的文章依次弹出
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setVisible(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          io.disconnect()
+        }
+      },
+      { threshold: 0.15 }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     const el = articlesRef.current
@@ -52,7 +74,11 @@ export default function Insights() {
   }
 
   return (
-    <div className="home-insights" id="home-insights">
+    <div
+      className={`home-insights ${visible ? 'is-visible' : ''}`}
+      id="home-insights"
+      ref={sectionRef}
+    >
       <div className="section-header">
         <div className="section-header-row">
           <div>
@@ -70,6 +96,7 @@ export default function Insights() {
             <div
               key={item.slug}
               className={`toc-item ${activeIndex === idx ? 'active' : ''}`}
+              style={{ animationDelay: `${idx * 90}ms` }}
               onClick={() => handleTocClick(idx)}
             >
               <div className="toc-title">{item.title}</div>

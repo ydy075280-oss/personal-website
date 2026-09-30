@@ -2747,3 +2747,57 @@ main {
 .nav-on-dark .nav-item.active {
   color: #ece8e2;
 }
+
+/* ============================================================
+   洞察：滚动进入视口时，文章依次弹出（错开延迟由内联 animationDelay 控制）
+   ============================================================ */
+
+@keyframes insightPop {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 首页洞察画廊 */
+.home-insights .section-header,
+.home-insights .toc-item {
+  opacity: 0;
+}
+
+.home-insights.is-visible .section-header {
+  animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.home-insights.is-visible .toc-item {
+  animation: insightPop 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 洞察列表页 */
+.insights-list-page .section-header,
+.insights-list-page .insights-long-item {
+  opacity: 0;
+}
+
+.insights-list-page.is-visible .section-header {
+  animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.insights-list-page.is-visible .insights-long-item {
+  animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 尊重系统的「减少动态效果」设置 */
+@media (prefers-reduced-motion: reduce) {
+  .home-insights .section-header,
+  .home-insights .toc-item,
+  .insights-list-page .section-header,
+  .insights-list-page .insights-long-item {
+    opacity: 1;
+    animation: none !important;
+  }
+}
