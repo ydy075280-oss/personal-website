@@ -1819,19 +1819,21 @@ main {
 
 /* ===== 写作台 Studio ===== */
 .studio-page {
+  /* 写作台内容宽度：想整体加宽/收窄只改这里 */
+  --studio-width: 980px;
   max-width: 100%;
   padding: 120px 12px 140px;
 }
 
 /* 写作台各区块统一宽度与内边距：所有输入框左边缘对齐在同一条竖线上 */
 .studio-page .section-header {
-  max-width: 780px;
+  max-width: var(--studio-width);
   padding-left: 24px;
   padding-right: 24px;
 }
 
 .studio-import {
-  max-width: 780px;
+  max-width: var(--studio-width);
   margin-bottom: 40px;
   padding-left: 24px;
   padding-right: 24px;
@@ -1924,7 +1926,7 @@ main {
 }
 
 .studio-editor {
-  max-width: 780px;
+  max-width: var(--studio-width);
   margin-bottom: 48px;
   padding: 24px;
   border: 1px solid var(--dirt-line);
@@ -1996,7 +1998,7 @@ main {
 }
 
 .studio-success {
-  max-width: 780px;
+  max-width: var(--studio-width);
   margin-bottom: 40px;
   padding: 20px 24px;
   border: 1px solid var(--dirt-accent);
@@ -2018,7 +2020,7 @@ main {
 }
 
 .studio-list {
-  max-width: 780px;
+  max-width: var(--studio-width);
   padding-left: 24px;
   padding-right: 24px;
 }
@@ -2592,7 +2594,7 @@ main {
 .studio-tabs {
   display: flex;
   gap: 24px;
-  max-width: 780px;
+  max-width: var(--studio-width);
   padding: 0 24px;
   margin-bottom: 28px;
   border-bottom: 1px solid var(--dirt-line);
@@ -2631,7 +2633,7 @@ main {
 }
 
 .studio-push {
-  max-width: 780px;
+  max-width: var(--studio-width);
   margin-bottom: 40px;
   padding: 20px 24px;
   border: 1px solid var(--dirt-line);
