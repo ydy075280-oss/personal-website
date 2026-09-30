@@ -14,24 +14,45 @@ export default function Insights() {
   const sectionRef = useRef(null)
   const active = insights[activeIndex]
 
-  // 滚动进入视口时触发：目录里的文章依次弹出
+  // 标题在区块进入视口时显示；每篇文章各自滚入视口时才弹出
+  // （逐条触发，这样往下滚动时能一眼看出哪些是刚出现的）
   useEffect(() => {
-    const el = sectionRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') {
+    const section = sectionRef.current
+
+    if (!section || typeof IntersectionObserver === 'undefined') {
       setVisible(true)
       return
     }
-    const io = new IntersectionObserver(
+
+    const blockIo = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true)
-          io.disconnect()
+          blockIo.disconnect()
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     )
-    io.observe(el)
-    return () => io.disconnect()
+    blockIo.observe(section)
+
+    const itemIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view')
+            itemIo.unobserve(entry.target)
+          }
+        })
+      },
+      // 底部内收一点，让条目再往上滚一些才出现，动效更容易被看到
+      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+    )
+    section.querySelectorAll('.toc-item').forEach((el) => itemIo.observe(el))
+
+    return () => {
+      blockIo.disconnect()
+      itemIo.disconnect()
+    }
   }, [])
 
   useEffect(() => {
@@ -96,7 +117,6 @@ export default function Insights() {
             <div
               key={item.slug}
               className={`toc-item ${activeIndex === idx ? 'active' : ''}`}
-              style={{ animationDelay: `${idx * 90}ms` }}
               onClick={() => handleTocClick(idx)}
             >
               <div className="toc-title">{item.title}</div>

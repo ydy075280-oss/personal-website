@@ -7,24 +7,44 @@ export default function InsightsList() {
   const [visible, setVisible] = useState(false)
   const pageRef = useRef(null)
 
-  // 进入页面时，文章列表依次弹出
+  // 标题进入视口时显示；每篇文章各自滚入视口时才弹出
+  // （逐条触发，往下滚动时能分辨哪些是刚出现的）
   useEffect(() => {
-    const el = pageRef.current
-    if (!el || typeof IntersectionObserver === 'undefined') {
+    const page = pageRef.current
+
+    if (!page || typeof IntersectionObserver === 'undefined') {
       setVisible(true)
       return
     }
-    const io = new IntersectionObserver(
+
+    const blockIo = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true)
-          io.disconnect()
+          blockIo.disconnect()
         }
       },
       { threshold: 0.05 }
     )
-    io.observe(el)
-    return () => io.disconnect()
+    blockIo.observe(page)
+
+    const itemIo = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view')
+            itemIo.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' }
+    )
+    page.querySelectorAll('.insights-long-item').forEach((el) => itemIo.observe(el))
+
+    return () => {
+      blockIo.disconnect()
+      itemIo.disconnect()
+    }
   }, [])
 
   const openPost = (slug) => {
@@ -43,7 +63,6 @@ export default function InsightsList() {
           <div
             key={item.slug}
             className="insights-long-item"
-            style={{ animationDelay: `${idx * 70}ms` }}
             onClick={() => openPost(item.slug)}
             role="button"
             tabIndex={0}

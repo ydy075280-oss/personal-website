@@ -2763,9 +2763,8 @@ main {
   }
 }
 
-/* 首页洞察画廊 */
-.home-insights .section-header,
-.home-insights .toc-item {
+/* 首页洞察画廊：标题随区块出现，文章逐条滚入时各自弹出 */
+.home-insights .section-header {
   opacity: 0;
 }
 
@@ -2773,13 +2772,16 @@ main {
   animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.home-insights.is-visible .toc-item {
+.home-insights .toc-item {
+  opacity: 0;
+}
+
+.home-insights .toc-item.in-view {
   animation: insightPop 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* 洞察列表页 */
-.insights-list-page .section-header,
-.insights-list-page .insights-long-item {
+/* 洞察列表页：同样逐条触发 */
+.insights-list-page .section-header {
   opacity: 0;
 }
 
@@ -2787,7 +2789,11 @@ main {
   animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.insights-list-page.is-visible .insights-long-item {
+.insights-list-page .insights-long-item {
+  opacity: 0;
+}
+
+.insights-list-page .insights-long-item.in-view {
   animation: insightPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
