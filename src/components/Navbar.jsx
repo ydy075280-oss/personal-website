@@ -14,7 +14,7 @@ const languages = [
 ]
 
 // 首页中的深色区块（导航浮在它们上方时自动反色）
-const DARK_SECTIONS = ['home', 'home-works']
+const DARK_SECTIONS = ['home', 'home-works', 'home-ai']
 
 export default function Navbar({ activeId, onNavigate }) {
   const [scrolled, setScrolled] = useState(false)

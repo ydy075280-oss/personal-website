@@ -5,6 +5,7 @@ import Insights from './components/Insights'
 import Works from './components/Works'
 import WorksGallery from './components/WorksGallery'
 import InsightsList from './components/InsightsList'
+import AiWorks from './components/AiWorks'
 import About from './components/About'
 import Footer from './components/Footer'
 import Post from './components/Post'
@@ -124,6 +125,7 @@ export default function App() {
             <Marquee />
             <Insights />
             <Works />
+            <AiWorks />
           </section>
 
           <Marquee />

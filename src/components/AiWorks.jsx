@@ -1,0 +1,50 @@
+import aiWorks from '../data/ai-works.json'
+
+/**
+ * AI 作品区：卡片网格
+ * 内容来自 src/data/ai-works.json，改那个文件即可增删卡片
+ * size 为 "large" 的卡片会跨两列两行（左上角主卡）
+ */
+export default function AiWorks() {
+  return (
+    <section id="home-ai" className="ai-works">
+      <div className="section-header">
+        <div className="section-header-row">
+          <div>
+            <h2>AI 实验</h2>
+            <p>我自己动手做的 AI 小工具：从冒出一个念头，到真正用起来，记录做法和踩过的坑。</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="ai-grid">
+        {aiWorks.map((item) => (
+          <article
+            key={item.id}
+            className={`ai-card ${item.size === 'large' ? 'ai-card-large' : ''}`}
+          >
+            <div className="ai-card-meta">
+              <span className="ai-card-index">{item.index}</span>
+              <span className="ai-card-sep" aria-hidden="true" />
+              <span>{item.year}</span>
+            </div>
+
+            <h3 className="ai-card-title">{item.title}</h3>
+            <p className="ai-card-desc">{item.desc}</p>
+
+            {item.link && (
+              <a
+                className="ai-card-link"
+                href={item.link}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {item.linkText || '查看项目'} <span aria-hidden="true">↗</span>
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}

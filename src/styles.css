@@ -2738,6 +2738,150 @@ main {
   border-radius: 12px;
 }
 
+/* ============================================================
+   首页 AI 实验区：卡片网格（深色区块）
+   ============================================================ */
+
+.ai-works {
+  --dirt-bg: #0b0a09;
+  --dirt-bg-soft: #151412;
+  --dirt-ink: #ece8e2;
+  --dirt-sub: #9c9890;
+  --dirt-muted: #6c6862;
+  --dirt-line: #262421;
+  --dirt-cream: #141312;
+  --dirt-accent: #e2754f;
+
+  background: var(--dirt-bg);
+  color: var(--dirt-ink);
+  border-top: 1px solid var(--dirt-line);
+  padding: 100px var(--page-pad-x) 120px;
+}
+
+.ai-works .section-header h2 {
+  color: var(--dirt-ink);
+}
+
+.ai-works .section-header p {
+  color: var(--dirt-sub);
+}
+
+/* 不规则卡片网格：大卡跨两列两行 */
+.ai-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: dense;
+  gap: 14px;
+}
+
+.ai-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border: 1px solid var(--dirt-line);
+  background: transparent;
+  transition: border-color 0.35s, background 0.35s;
+}
+
+.ai-card:hover {
+  border-color: var(--dirt-accent);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ai-card-large {
+  grid-column: span 2;
+  grid-row: span 2;
+  padding: 36px;
+}
+
+/* 编号 — 年份 */
+.ai-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--dirt-accent);
+}
+
+.ai-card-sep {
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.ai-card-title {
+  margin: 22px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.3rem, 2.1vw, 1.9rem);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--dirt-ink);
+}
+
+.ai-card-large .ai-card-title {
+  margin-top: 28px;
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+}
+
+.ai-card-desc {
+  margin: 16px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.9;
+  color: var(--dirt-sub);
+}
+
+/* CTA 始终贴在卡片底部 */
+.ai-card-link {
+  margin-top: auto;
+  padding-top: 24px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dirt-accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  transition: opacity 0.25s;
+}
+
+.ai-card-link:hover {
+  opacity: 0.75;
+}
+
+@media (max-width: 1024px) {
+  .ai-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ai-card-large {
+    grid-column: span 2;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .ai-works {
+    padding: 72px var(--page-pad-x) 88px;
+  }
+
+  .ai-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-card-large {
+    grid-column: span 1;
+    padding: 28px;
+  }
+}
+
 /* 导航浮在深色区块上方时：文字转浅色（特异性高于 index.css 里的 .nav-item） */
 .nav-on-dark .nav-item {
   color: #9c9890;
