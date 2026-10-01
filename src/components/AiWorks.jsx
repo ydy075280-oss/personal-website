@@ -32,7 +32,8 @@ export default function AiWorks() {
             <h3 className="ai-card-title">{item.title}</h3>
             <p className="ai-card-desc">{item.desc}</p>
 
-            {item.link && (
+            {/* CTA 固定在左下角：填了 link 就是可点链接，否则只做展示 */}
+            {item.link ? (
               <a
                 className="ai-card-link"
                 href={item.link}
@@ -41,6 +42,10 @@ export default function AiWorks() {
               >
                 {item.linkText || '查看项目'} <span aria-hidden="true">↗</span>
               </a>
+            ) : (
+              <span className="ai-card-link ai-card-link-static">
+                {item.linkText || '查看项目'} <span aria-hidden="true">↗</span>
+              </span>
             )}
           </article>
         ))}
