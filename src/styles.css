@@ -2786,12 +2786,49 @@ main {
 }
 
 .ai-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 28px;
   border: 1px solid var(--dirt-line);
   background: transparent;
   transition: border-color 0.35s, background 0.35s;
+}
+
+/* 右上角跳转按钮 */
+.ai-card-corner {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--dirt-muted);
+  border: 1px solid var(--dirt-line);
+  border-radius: 50%;
+  text-decoration: none;
+  transition: color 0.25s, border-color 0.25s, transform 0.25s, background 0.25s;
+}
+
+.ai-card-corner:hover {
+  color: var(--dirt-accent);
+  border-color: var(--dirt-accent);
+  background: rgba(226, 117, 79, 0.08);
+  transform: translate(2px, -2px);
+}
+
+/* 未填链接时只作装饰，不可点 */
+.ai-card-corner-static {
+  cursor: default;
+}
+
+.ai-card:hover .ai-card-corner-static {
+  color: var(--dirt-accent);
+  border-color: var(--dirt-accent);
 }
 
 .ai-card:hover {

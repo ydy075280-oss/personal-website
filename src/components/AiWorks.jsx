@@ -27,6 +27,24 @@ export default function AiWorks() {
               item.size === 'large' ? 'ai-card-large' : item.size === 'wide' ? 'ai-card-wide' : ''
             }`}
           >
+            {/* 右上角跳转按钮 */}
+            {item.link ? (
+              <a
+                className="ai-card-corner"
+                href={item.link}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`打开：${item.title}`}
+                title="打开作品"
+              >
+                ↗
+              </a>
+            ) : (
+              <span className="ai-card-corner ai-card-corner-static" aria-hidden="true">
+                ↗
+              </span>
+            )}
+
             <div className="ai-card-meta">
               <span className="ai-card-index">{item.index}</span>
               <span className="ai-card-sep" aria-hidden="true" />
