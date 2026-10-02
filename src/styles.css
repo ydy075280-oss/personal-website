@@ -2805,6 +2805,11 @@ main {
   padding: 36px;
 }
 
+/* 跨两列，用来把一行铺满 */
+.ai-card-wide {
+  grid-column: span 2;
+}
+
 /* 编号 — 年份 */
 .ai-card-meta {
   display: flex;
@@ -2894,8 +2899,12 @@ main {
     grid-template-columns: 1fr;
   }
 
-  .ai-card-large {
+  .ai-card-large,
+  .ai-card-wide {
     grid-column: span 1;
+  }
+
+  .ai-card-large {
     padding: 28px;
   }
 }

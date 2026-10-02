@@ -3,7 +3,9 @@ import aiWorks from '../data/ai-works.json'
 /**
  * AI 作品区：卡片网格
  * 内容来自 src/data/ai-works.json，改那个文件即可增删卡片
- * size 为 "large" 的卡片会跨两列两行（左上角主卡）
+ * size 取值：
+ *   "large" —— 跨两列两行（左上角主卡）
+ *   "wide"  —— 跨两列（用来铺满一行）
  */
 export default function AiWorks() {
   return (
@@ -21,7 +23,9 @@ export default function AiWorks() {
         {aiWorks.map((item) => (
           <article
             key={item.id}
-            className={`ai-card ${item.size === 'large' ? 'ai-card-large' : ''}`}
+            className={`ai-card ${
+              item.size === 'large' ? 'ai-card-large' : item.size === 'wide' ? 'ai-card-wide' : ''
+            }`}
           >
             <div className="ai-card-meta">
               <span className="ai-card-index">{item.index}</span>
