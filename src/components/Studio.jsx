@@ -419,6 +419,7 @@ export default function Studio({ onOpenPost }) {
 
   // 从零开始写一篇新文章
   const handleNewPost = () => {
+    setTab('create')
     setUrl('')
     setError('')
     setMode(null)
@@ -473,6 +474,8 @@ export default function Studio({ onOpenPost }) {
   }
 
   const handleEdit = (p) => {
+    // 编辑区在「创作 / 新增」页里，先切过去，否则看起来像点了没反应
+    setTab('create')
     setUrl('')
     setError('')
     setSavedSlug(null)
@@ -483,6 +486,13 @@ export default function Studio({ onOpenPost }) {
       content: p.content,
     })
     setEditingSlug(p.slug)
+
+    // 切换后再滚动到编辑区
+    window.setTimeout(() => {
+      document
+        .querySelector('.studio-editor')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 120)
   }
 
   const handleDelete = async (p) => {
