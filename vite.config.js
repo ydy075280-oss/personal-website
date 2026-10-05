@@ -87,15 +87,51 @@ async function importFromNotion(pageId, token, imagesDir) {
 
 /* ---------- 保存文章 ---------- */
 
+// 把各种写法（2026.08 / 2026-8 / 2026/08/05）统一成 YYYY-MM-DD；无法识别则返回 ''
+function normalizeDate(input) {
+  const s = String(input || '').trim()
+  if (!s) return ''
+  const m = s.match(/(\d{4})\D{0,2}(\d{1,2})(?:\D{0,2}(\d{1,2}))?/)
+  if (!m) return ''
+  const p = (n) => String(Number(n)).padStart(2, '0')
+  return `${m[1]}-${p(m[2])}-${p(m[3] || 1)}`
+}
+
+function todayStr() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
+function nowStr() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${todayStr()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
+
 function savePost({ title, content, tag, date, slug }) {
   const isNew = !slug
   const base = isNew ? slugify(title) : String(slug).replace(/\.md$/, '')
   const finalSlug = isNew ? uniqueSlug(base) : base
   const safe = (s) => String(s || '').replace(/"/g, '\\"')
+
+  // 编辑旧文时保留原始上传时间，避免改一次内容就跑到列表最前面
+  let posted = nowStr()
+  let finalDate = normalizeDate(date) || todayStr()
+  if (!isNew) {
+    const file = join(contentDir, `${finalSlug}.md`)
+    if (existsSync(file)) {
+      const prev = parseFrontmatterNode(readFileSync(file, 'utf8')).meta
+      if (prev.posted) posted = prev.posted
+      if (!normalizeDate(date) && prev.date) finalDate = prev.date
+    }
+  }
+
   const fm =
 `---
 title: "${safe(title)}"
-date: "${date || new Date().toISOString().slice(0, 7)}"
+date: "${finalDate}"
+posted: "${posted}"
 tag: "${safe(tag || '随笔')}"
 ---
 
@@ -126,8 +162,20 @@ function parseFrontmatterNode(raw) {
 }
 
 function toRfc822(date) {
-  const d = date ? new Date(date.replace(/\./g, '-') + '-01T00:00:00') : new Date()
+  const s = String(date || '').trim()
+  if (!s) return new Date().toUTCString()
+  const m = s.match(/(\d{4})\D{0,2}(\d{1,2})(?:\D{0,2}(\d{1,2}))?/)
+  if (!m) return new Date().toUTCString()
+  const p = (n) => String(Number(n)).padStart(2, '0')
+  const d = new Date(`${m[1]}-${p(m[2])}-${p(m[3] || 1)}T00:00:00`)
   return isNaN(d.getTime()) ? new Date().toUTCString() : d.toUTCString()
+}
+
+// 排序依据：posted（上传时间）优先，缺失时退回 date
+function feedSortKey(meta) {
+  const raw = String(meta.posted || meta.date || '')
+  const digits = raw.replace(/\D/g, '')
+  return digits ? digits.padEnd(14, '0').slice(0, 14) : ''
 }
 
 function buildFeed(siteUrl, distDir) {
@@ -139,7 +187,7 @@ function buildFeed(siteUrl, distDir) {
       const { meta, content } = parseFrontmatterNode(raw)
       return { slug: f.replace(/\.md$/, ''), meta, content }
     })
-    .sort((a, b) => (b.meta.date || '').localeCompare(a.meta.date || ''))
+    .sort((a, b) => feedSortKey(b.meta).localeCompare(feedSortKey(a.meta)))
     .map((p) => {
       const plain = p.content
         .replace(/!\[[^\]]*\]\([^)]*\)/g, '')

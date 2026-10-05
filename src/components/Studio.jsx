@@ -20,6 +20,13 @@ function extractNotionPageId(url) {
   return m ? m[0] : null
 }
 
+// 本地时区的 YYYY-MM-DD（文章按上传时间排序，日期要精确到日）
+function todayStr() {
+  const d = new Date()
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
+}
+
 export default function Studio({ onOpenPost }) {
   const [url, setUrl] = useState('')
   const [busy, setBusy] = useState(false)
@@ -296,7 +303,7 @@ export default function Studio({ onOpenPost }) {
         setDraft({
           title: data.title || '未命名文章',
           tag: '',
-          date: new Date().toISOString().slice(0, 7),
+          date: todayStr(),
           content: data.content || '',
         })
       } else {
@@ -311,7 +318,7 @@ export default function Studio({ onOpenPost }) {
         setDraft({
           title: data.title || new URL(target).hostname,
           tag: '',
-          date: new Date().toISOString().slice(0, 7),
+          date: todayStr(),
           content: data.content || '',
         })
       }
@@ -428,7 +435,7 @@ export default function Studio({ onOpenPost }) {
     setDraft({
       title: '',
       tag: '',
-      date: new Date().toISOString().slice(0, 7),
+      date: todayStr(),
       content: '',
     })
     requestAnimationFrame(() => titleRef.current?.focus())
@@ -669,7 +676,7 @@ export default function Studio({ onOpenPost }) {
               <input
                 className="studio-input"
                 value={draft.date}
-                placeholder="YYYY.MM"
+                placeholder="YYYY-MM-DD"
                 onChange={(e) => setDraft({ ...draft, date: e.target.value })}
               />
             </label>

@@ -3,6 +3,7 @@ dist
 dist-new
 dist-update
 dist-verify
+dist-check
 site-update.zip
 .env.local
 vite-dev.log

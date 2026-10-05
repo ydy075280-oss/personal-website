@@ -16,6 +16,14 @@ export function parseFrontmatter(raw) {
   return { meta, content: m[2].trim() }
 }
 
+// 把日期统一成可比较的数字串：2026-10-02 11:48:13 → 20261002114813
+// 兼容只有年月（2026-08）、点分（2026.08）等写法，缺位补 0
+export function sortKey(value) {
+  const digits = String(value || '').replace(/\D/g, '')
+  if (!digits) return ''
+  return digits.padEnd(14, '0').slice(0, 14)
+}
+
 export function getAllPosts() {
   return Object.entries(modules)
     .map(([path, raw]) => {
@@ -37,11 +45,19 @@ export function getAllPosts() {
         content,
         title: meta.title || slug,
         date: meta.date || '',
+        // posted 为上传时刻（精确到秒）；老文章没有时退回 date
+        posted: meta.posted || '',
         tag: meta.tag || '',
         excerpt: meta.excerpt || plain.slice(0, 200),
       }
     })
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    // 按上传时间倒序：最新的排在最前
+    .sort((a, b) => {
+      const ka = sortKey(a.posted) || sortKey(a.date)
+      const kb = sortKey(b.posted) || sortKey(b.date)
+      if (ka === kb) return String(a.title).localeCompare(String(b.title), 'zh')
+      return kb.localeCompare(ka)
+    })
 }
 
 export function getPost(slug) {
