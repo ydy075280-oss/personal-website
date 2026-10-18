@@ -118,29 +118,6 @@ main {
   margin-bottom: 20px;
 }
 
-.hero-stats {
-  display: flex;
-  gap: 56px;
-  margin-top: 40px;
-  padding-top: 28px;
-  border-top: 1px solid var(--dirt-line);
-}
-
-.hero-stat-value {
-  font-family: var(--font-serif);
-  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
-  font-weight: 500;
-  line-height: 1;
-  color: var(--dirt-accent);
-}
-
-.hero-stat-label {
-  margin-top: 10px;
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-  color: var(--dirt-muted);
-}
-
 .hero-foot {
   display: flex;
   align-items: center;
@@ -171,11 +148,6 @@ main {
 
   .hero-side {
     max-width: 100%;
-  }
-
-  .hero-stats {
-    gap: 40px;
-    margin-top: 28px;
   }
 }
 
@@ -251,12 +223,14 @@ main {
 .insights-long-main {
   flex: 1 1 auto;
   min-width: 0;
+  /* 正文（标题+摘要）宽度收在黄金分割点，右侧留白给日期 */
+  max-width: 61.8%;
 }
 
-/* 列表标题：18px */
+/* 列表标题：24px */
 .insights-long-title {
   display: block;
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   line-height: 1.5;
@@ -843,6 +817,8 @@ main {
 
 .article-header {
   margin-bottom: 20px;
+  /* 首页洞察：标题与摘要一起收在黄金分割点，右侧留白 */
+  max-width: 61.8%;
 }
 
 .article-title {
@@ -866,6 +842,7 @@ main {
   font-size: 0.875rem;
   line-height: 1.9;
   color: var(--dirt-sub);
+  max-width: 61.8%;
 }
 
 /* 摘要最多 4 行，超出部分以省略号收尾；pre-line 让正文里的分段回车在摘要中保留 */
@@ -1163,9 +1140,10 @@ main {
 }
 
 .contact-form-layout {
+  /* 与上方 .about-layout 同栅格，使表单宽度 / 左边缘与四个理念框对齐 */
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 100px;
   align-items: start;
 }
 
@@ -1179,6 +1157,7 @@ main {
   letter-spacing: -0.02em;
   color: var(--dirt-ink);
   margin-bottom: 12px;
+  overflow-wrap: anywhere;
 }
 
 .contact-form-desc {
@@ -1422,6 +1401,11 @@ main {
   }
   .works-articles {
     padding: 0 20px 80px;
+  }
+  /* 单列堆叠时取消黄金分割限宽 */
+  .article-header,
+  .article-body {
+    max-width: none;
   }
   .home-insights .section-header {
     padding: 0 20px;
@@ -2250,6 +2234,15 @@ main {
     padding: 22px 0;
   }
 
+  /* 单列堆叠时取消黄金分割限宽 */
+  .insights-long-main {
+    max-width: none;
+  }
+
+  .insights-long-title {
+    font-size: 1.25rem;
+  }
+
   .insights-long-excerpt {
     -webkit-line-clamp: 3;
   }
@@ -2951,9 +2944,13 @@ main {
   color: #9c9890;
 }
 
-.nav-on-dark .nav-item:hover,
-.nav-on-dark .nav-item.active {
+.nav-on-dark .nav-item:hover {
   color: #ece8e2;
+}
+
+/* 深色区块上方的选中项：用提亮后的点缀色，保证在近黑底上够醒目 */
+.nav-on-dark .nav-item.active {
+  color: #e2754f;
 }
 
 /* ============================================================

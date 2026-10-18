@@ -66,14 +66,14 @@ export default function About() {
               alt="Profile"
             />
           </div>
-          <div className="profile-label">主理人</div>
-          <div className="profile-name">创造试验室</div>
+          <div className="profile-label">工业设计师</div>
+          <div className="profile-name">YANGZHI</div>
         </div>
 
         <div className="bio-text">
           <h2>关于我</h2>
           <p>
-            我是一名跨领域研究者与产品创造者，关注文化、技术与生活方式的交叉地带。
+            我是一名工业设计师，也是创作者，关注文化、技术与生活方式的交叉地带。
             在这里，我尝试用设计、写作与代码来回应一个问题：
             我们如何在快速变化的时代中，创造既有意义又有美感的产品与体验？
           </p>
@@ -93,7 +93,7 @@ export default function About() {
           </div>
 
           <div className="contact-links">
-            <a href="mailto:your@email.com" className="contact-link">发送邮件 →</a>
+            <a href="mailto:yangzwy163@163.com" className="contact-link">发送邮件 →</a>
             <a href="#" className="contact-link">查看简历 →</a>
           </div>
         </div>
@@ -103,10 +103,10 @@ export default function About() {
       <div className="contact-form-section">
         <div className="contact-form-layout">
           <div className="contact-form-left">
-            <div className="contact-form-email">hello@creativelab.co</div>
+            <div className="contact-form-email">yangzwy163@163.com</div>
             <p className="contact-form-desc">
-              扎根于珀斯与悉尼。<br/>
-              为全世界而建立。
+              扎根于中国，面向合作与展示。<br/>
+              如果你也在做产品，欢迎和我聊聊。
             </p>
           </div>
           <form className="contact-form" onSubmit={handleSubmit}>
@@ -172,7 +172,7 @@ export default function About() {
           <div className="footer-col">
             <div className="footer-col-title">联系方式</div>
             <div className="footer-links">
-              <a href="mailto:hello@creativelab.co" className="footer-link">hello@creativelab.co</a>
+              <a href="mailto:yangzwy163@163.com" className="footer-link">yangzwy163@163.com</a>
             </div>
           </div>
           <div className="footer-col">
@@ -183,7 +183,7 @@ export default function About() {
             </div>
           </div>
         </div>
-        <div className="footer-copyright">©2026 创造试验室</div>
+        <div className="footer-copyright">©2026 YANGZHI</div>
       </footer>
     </div>
   )

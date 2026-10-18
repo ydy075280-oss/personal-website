@@ -54,9 +54,13 @@
     @apply cursor-pointer text-[0.82rem] font-medium tracking-[0.14em] text-[#8d877c] transition-colors duration-300;
   }
 
-  .nav-item:hover,
-  .nav-item.active {
+  .nav-item:hover {
     color: #1c1a17;
+  }
+
+  /* 选中项用点缀色（橙红），和当前所在区块呼应 */
+  .nav-item.active {
+    color: var(--dirt-accent, #c1502e);
   }
 }
 

@@ -13,9 +13,6 @@ const languages = [
   { code: 'es', label: 'ES' },
 ]
 
-// 首页中的深色区块（导航浮在它们上方时自动反色）
-const DARK_SECTIONS = ['home', 'home-works', 'home-ai']
-
 export default function Navbar({ activeId, onNavigate }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -36,19 +33,24 @@ export default function Navbar({ activeId, onNavigate }) {
     }
   }, [lang])
 
-  // 滚动位置是否落在深色区块上
+  // 滚动位置是否落在深色区块上（首屏 / 作品 / AI 实验区为近黑底）
   useEffect(() => {
+    const darkEls = () =>
+      [
+        document.querySelector('.hero-section'),
+        document.getElementById('home-works'),
+        document.getElementById('home-ai'),
+      ].filter(Boolean)
+
     const update = () => {
       const y = window.scrollY
-      const navH = 72
       setScrolled(y > 50)
 
-      const over = DARK_SECTIONS.some((id) => {
-        const el = document.getElementById(id)
-        if (!el) return false
-        const top = el.offsetTop - navH
-        const bottom = el.offsetTop + el.offsetHeight - navH
-        return y >= top && y < bottom
+      // 取导航竖直中线（约 36px）当前压在哪个区块上
+      const navMid = 36
+      const over = darkEls().some((el) => {
+        const rect = el.getBoundingClientRect()
+        return rect.top <= navMid && rect.bottom > navMid
       })
       setOverDark(over)
     }
@@ -56,7 +58,7 @@ export default function Navbar({ activeId, onNavigate }) {
     update()
     const onRoute = () => window.setTimeout(update, 120)
 
-    window.addEventListener('scroll', update)
+    window.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update)
     window.addEventListener('hashchange', onRoute)
     return () => {
@@ -91,10 +93,8 @@ export default function Navbar({ activeId, onNavigate }) {
       <nav
         className={`fixed top-0 left-0 w-full z-[100] px-6 md:px-12 h-[72px] flex items-center justify-between transition-colors duration-300 border-b ${
           dark
-            ? 'bg-transparent border-transparent'
-            : scrolled
-              ? 'bg-[#f2efe9]/90 border-[#ddd7ca] backdrop-blur-md'
-              : 'bg-[#f2efe9]/70 border-[#e6e1d7] backdrop-blur-md'
+            ? 'bg-[#0b0a09] border-transparent'
+            : 'bg-[#f2efe9]/70 backdrop-blur-md border-[#ddd7ca]'
         } ${dark ? 'nav-on-dark' : ''}`}
       >
         <button

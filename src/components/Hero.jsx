@@ -1,16 +1,10 @@
-const stats = [
-  { value: '6+', label: '年经验' },
-  { value: '12+', label: '上线产品' },
-  { value: '3K+', label: '用户' },
-]
-
 export default function Hero() {
   return (
     <section id="home" className="hero-section">
       <div className="hero-inner">
         {/* 左侧：身份标签 + 主标题 */}
         <div className="hero-main">
-          <p className="hero-label">产品设计师 · 独立开发者</p>
+          <p className="hero-label">工业设计师 · 也做 AI 应用</p>
           <h1 className="hero-title">
             <span>做让人</span>
             <span className="hero-title-accent">真正喜欢</span>
@@ -18,25 +12,16 @@ export default function Hero() {
           </h1>
         </div>
 
-        {/* 右侧：自我介绍 + 数据 */}
+        {/* 右侧：自我介绍 */}
         <div className="hero-side">
           <p className="hero-lede">
-            我是创造试验室的主理人，一名跨领域的设计师与开发者。过去六年里，
-            我专注于打造简洁而有深度的数字产品——从概念到代码，从界面到体验。
+            我是 YANGZHI，一名工业设计师。一边做实体产品的工业设计——
+            消费电子、家居与硬件；一边自己把想法做成能用的 AI 工具。
           </p>
           <p className="hero-lede">
-            我相信好的产品是克制的：它只做一件事，但把这件事做到极致。
-            我的工作横跨设计工具、开发者基础设施与内容创作领域。
+            这里收录我的作品与思考：从概念草图到落地产品，
+            也记录我对设计、社会与技术的一些观察。
           </p>
-
-          <div className="hero-stats">
-            {stats.map((item) => (
-              <div className="hero-stat" key={item.label}>
-                <div className="hero-stat-value">{item.value}</div>
-                <div className="hero-stat-label">{item.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

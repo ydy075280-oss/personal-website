@@ -139,7 +139,7 @@ export default function App() {
 
 /* Dirtverse 风格的无限滚动品牌横幅 */
 function Marquee() {
-  const items = ['创造试验室', 'Creative Laboratory', '文化 · 技术 · 生活方式', 'It Starts in the Lab']
+  const items = ['YANGZHI', '工业设计师', '作品 · 洞察', '设计 × 思考']
   // 复制一份实现无缝循环
   const track = [...items, ...items, ...items, ...items]
   return (

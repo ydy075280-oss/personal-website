@@ -71,7 +71,7 @@ export default function InsightsList() {
     <div className={`insights-list-page ${visible ? 'is-visible' : ''}`} ref={pageRef}>
       <div className="section-header">
         <h2>洞察画廊</h2>
-        <p>对文化、技术与设计的持续观察与思考。</p>
+        <p>这里是我关于社会/设计/政治哲学的观察与思考</p>
       </div>
 
       <div className="insights-long-list">

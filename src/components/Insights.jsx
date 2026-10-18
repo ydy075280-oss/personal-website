@@ -121,7 +121,7 @@ export default function Insights() {
         <div className="section-header-row">
           <div>
             <h2>洞察画廊</h2>
-            <p>对文化、技术与设计的持续观察与思考。点击左侧目录，或在右侧区域滚动鼠标切换，点击文章可进入全文阅读。</p>
+            <p>这里是我关于社会/设计/政治哲学的观察与思考。点击左侧目录，或在右侧区域滚动鼠标切换，点击文章可进入全文阅读。</p>
           </div>
           <a className="section-more" href="#/insights">更多 →</a>
         </div>
